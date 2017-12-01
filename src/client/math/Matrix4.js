@@ -197,11 +197,28 @@ export class Matrix4 {
 	}
 
 	perspective (left, right, top, bottom, near, far) {
+		this.elements[ 0 ] = 2 * near / ( right - left );
+		this.elements[ 4 ] = 0;
+		this.elements[ 8 ] = ( right + left ) / ( right - left );
+		this.elements[ 12 ] = 0;
+		this.elements[ 1 ] = 0;
+		this.elements[ 5 ] = 2 * near / ( top - bottom );
+		this.elements[ 9 ] = ( top + bottom ) / ( top - bottom );
+		this.elements[ 13 ] = 0;
+		this.elements[ 2 ] = 0;
+		this.elements[ 6 ] = 0;
+		this.elements[ 10 ] = - ( far + near ) / ( far - near );
+		this.elements[ 14 ] = - 2 * far * near / ( far - near );
+		this.elements[ 3 ] = 0;
+		this.elements[ 7 ] = 0;
+		this.elements[ 11 ] = - 1;
+		this.elements[ 15 ] = 0;
 
+		return this;
 	}
 
 	orthograhic (left, right, top, bottom, near, far) {
-
+		throw new Error("Orthographic transform is not implemented");
 	}
 }
 
