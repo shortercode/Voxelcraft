@@ -1,9 +1,9 @@
 export class Matrix4 {
 	constructor () {
 		this.elements = [
-			1, 0, 0, 0
-			0, 1, 0, 0
-			0, 0, 1, 0
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
 			0, 0, 0, 1
 		];
 	}
@@ -86,7 +86,7 @@ export class Matrix4 {
 		this.elements[ 1 ] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
 		this.elements[ 5 ] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
 		this.elements[ 9 ] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
-		this.elements 13 ] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+		this.elements[ 13 ] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
 
 		this.elements[ 2 ] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
 		this.elements[ 6 ] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
