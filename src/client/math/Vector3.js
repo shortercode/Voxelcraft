@@ -60,6 +60,13 @@ export class Vector3 {
 
 		return this;
 	}
+	lerp (v, s) {
+		this.x += (v.x - this.x) * s;
+		this.y += (v.y - this.y) * s;
+		this.z += (v.z - this.z) * s;
+
+		return this;
+	}
 	length () {
 		return Math.sqrt(this.x **2 + this.y ** 2 + this.z ** 2);
 	}
@@ -68,4 +75,4 @@ export class Vector3 {
 	}
 }
 
-Vector3.UP = new Vector(0, 1, 0);
+Vector3.UP = new Vector3(0, 1, 0);
