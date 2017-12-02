@@ -64,7 +64,8 @@ export function getUniforms () {
 	return [
 		"camera",
 		"entity",
-		"texture"
+		"texture",
+		"perspective"
 	];
 }
 
@@ -87,11 +88,12 @@ export function getVertexSource () {
 
 		uniform mat4 camera;
 		uniform mat4 entity;
+		uniform mat4 perspective;
 
 		varying highp vec2 texturePosition;
 
 		void main(void) {
-			gl_Position = camera * entity * vec4(vertexBuffer, 1.0);
+			gl_Position = perspective * camera * entity * vec4(vertexBuffer, 1.0);
 			texturePosition = textureBuffer;
 		}
 	`;
