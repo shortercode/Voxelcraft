@@ -48,15 +48,18 @@ export class Renderer {
 		this.shader = s;
 		s.use();
 	}
-	setSize (x, y) {
-		this.width = x;
-		this.height = y;
-		this.element.style.width = `${x}px`;
-		this.element.style.height = `${y}px`;
-		this.element.width = this.pixelRatio * x;
-		this.element.height = this.pixelRatio * y;
-		this.camera.change(x / y);
-		this.context.viewport(0, 0, x, y);
+	setSize (width, height) {
+		const correctedWidth = width * this.pixelRatio;
+		const correctedHeight = height * this.pixelRatio;
+		const ratio = width / height;
+		this.width = width;
+		this.height = height;
+		this.element.style.width = `${width}px`;
+		this.element.style.height = `${height}px`;
+		this.element.width = correctedWidth;
+		this.element.height = correctedHeight;
+		this.camera.change(ratio);
+		this.context.viewport(0, 0, correctedWidth, correctedHeight);
 	}
 	updateSize () {
 		const w = innerWidth;
