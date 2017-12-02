@@ -88,7 +88,7 @@ export class FirstPersonControls {
 
 	}
 	onMouseMove (e) {
-		this.rotation.x += e.movementX / 200;
-		this.rotation.z += e.movementY / 200;
+		this.rotation.y -= e.movementX / 200;
+		this.rotation.x += e.movementY / 200;
 	}
 }
