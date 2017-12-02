@@ -107,15 +107,15 @@ export class Matrix4 {
 		const z2 = quaternion.z + quaternion.z;
 		const w2 = quaternion.w + quaternion.w;
 
-		const xx = x * x2;
-		const xy = x * y2;
-		const xz = x * z2;
-		const yy = y * y2;
-		const yz = y * z2;
-		const zz = z * z2;
-		const wx = w * x2;
-		const wy = w * y2;
-		const wz = w * z2;
+		const xx = quaternion.x * x2;
+		const xy = quaternion.x * y2;
+		const xz = quaternion.x * z2;
+		const yy = quaternion.y * y2;
+		const yz = quaternion.y * z2;
+		const zz = quaternion.z * z2;
+		const wx = quaternion.w * x2;
+		const wy = quaternion.w * y2;
+		const wz = quaternion.w * z2;
 
 		this.elements[0] = (1 - (yy + zz)) * scale.x;
 		this.elements[1] = (xy + wz) * scale.x;
@@ -130,8 +130,8 @@ export class Matrix4 {
 		this.elements[10] = (1 - (xx + yy)) * scale.z;
 		this.elements[11] = 0;
 		this.elements[12] = position.x;
-		this.elements[13] = position.x;
-		this.elements[14] = position.x;
+		this.elements[13] = position.y;
+		this.elements[14] = position.z;
 		this.elements[15] = 1;
 
 		return this;
@@ -192,8 +192,8 @@ export class Matrix4 {
 
 	positon ({x = 0, y = 0, z = 0}) {
 		this.elements[12] = x;
-		this.elements[13] = x;
-		this.elements[14] = x;
+		this.elements[13] = y;
+		this.elements[14] = z;
 	}
 
 	perspective (left, right, top, bottom, near, far) {
