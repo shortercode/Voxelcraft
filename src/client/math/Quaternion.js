@@ -40,7 +40,7 @@ export class Quaternion {
 
 		this.x = sx * cy * cz + cx * sy * sz;
 		this.y = cx * sy * cz - sx * cy * sz;
-		this.z = cx * cy * cz + sx * sy * cz;
+		this.z = cx * cy * sz + sx * sy * cz;
 		this.w = cx * cy * cz - sx * sy * sz;
 
 		return this;
