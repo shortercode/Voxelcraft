@@ -1,10 +1,12 @@
 import { Renderer } from "./engine/Renderer.js";
 import { FirstPersonControls } from "./engine/FirstPersonControls.js";
+import { Stat } from "./engine/Stat.js";
 import { Dispatcher } from "./events/Dispatcher.js";
 
 class Game extends Dispatcher {
 	constructor () {
 		super();
+		this.speedo = new Stat(this);
 		this.renderer = new Renderer();
 		this.camera = this.renderer.createCamera(1, 45, 0.1, 1000);
 		this.scene = this.renderer.createScene();
@@ -40,6 +42,8 @@ class Game extends Dispatcher {
 		tick();
 
 		document.body.appendChild(this.renderer.element);
+
+		this.renderer.element.requestPointerLock();
 	}
 	tick (dt) {
 		this.emit("frame", dt);
