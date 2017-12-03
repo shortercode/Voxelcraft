@@ -11,7 +11,7 @@ export class Stat {
 			} else {
 				average += (dt - average) * 0.5;
 			}
-			this.element.textContent = `${Math.round(average)}fps`;
+			this.element.textContent = `${Math.round(1000 / average)}fps`;
 		});
 	}
 }
