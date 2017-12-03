@@ -17,6 +17,21 @@ export class Entity {
 		this.texture = null;
 		this.shouldUpdate = true;
 	}
+	clone () {
+		const clone = new Entity(this.context);
+		clone.position = this.position.clone();
+		clone.rotation = this.rotation.clone();
+		clone.scale = this.scale.clone();
+		clone.matrix = this.matrix.clone();
+		clone.length = this.length;
+		// reuse existing buffers
+		clone.vertexBuffer = this.vertexBuffer;
+		clone.indexBuffer = this.indexBuffer;
+		clone.textureBuffer = this.textureBuffer;
+
+		clone.texture = this.texture;
+		return clone;
+	}
 	update () {
 		if (this.shouldUpdate){
 			this.matrix.compose(this.position, this.rotation, this.scale);
