@@ -60,6 +60,23 @@ export class Vector3 {
 
 		return this;
 	}
+	applyQuaternion ({x = 0, y = 0, z = 0, w = 1}) {
+		// calculate quat * vector
+
+		const ix = w * this.x + y * this.z - z * this.y;
+		const iy = w * this.y + z * this.x - x * this.z;
+		const iz = w * this.z + x * this.y - y * this.x;
+		const iw = - x * this.x - y * this.y - z * this.z;
+
+		// calculate result * inverse quat
+
+		this.x = ix * w + iw * - x + iy * - z - iz * - y;
+		this.y = iy * w + iw * - y + iz * - x - ix * - z;
+		this.z = iz * w + iw * - z + ix * - y - iy * - x;
+
+		return this;
+
+	}
 	lerp (v, s) {
 		this.x += (v.x - this.x) * s;
 		this.y += (v.y - this.y) * s;
