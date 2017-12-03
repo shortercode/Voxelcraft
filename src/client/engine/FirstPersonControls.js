@@ -8,8 +8,7 @@ export class FirstPersonControls {
 		this.subscribers = new CompositeDisposable();
 
 		this.subscribers.add(Disposable.from(document, "keydown", e => this.onKeyDown(e)));
-		this.subscribers.add(Disposable.from(document, "keyup", e => this.onKeyDown(e)));
-		this.subscribers.add(Disposable.from(document, "keydown", e => this.onKeyUp(e)));
+		this.subscribers.add(Disposable.from(document, "keyup", e => this.onKeyUp(e)));
 		this.subscribers.add(Disposable.from(document, "pointerlockchange", e => this.onPointerLockChange(e)));
 		this.subscribers.add(Disposable.from(document, "mousedown", e => this.onMouseDown(e)));
 		this.subscribers.add(game.on("frame", dt => this.onTick(dt)));
@@ -33,17 +32,34 @@ export class FirstPersonControls {
 		const delta = new Vector3();
 		if (keystate.w != keystate.s) {
 			// accelarate
-			delta.x = keystate.w ? 1 : -1;
+			delta.z = keystate.w ? 1 : -1;
 		}
 
 		if (keystate.a != keystate.d) {
-			delta.y = keystate.a ? 1 : -1;
+			delta.x = keystate.a ? 1 : -1;
 		}
 
 		if (keystate[" "] != keystate.Shift) {
-			delta.z = keystate.space ? 1 : -1;
+			delta.y = keystate.Shift ? 1 : -1;
 		}
-		const speed = 0.01 * dt;
+
+		const cs = Math.cos(this.rotation.y);
+		const sn = Math.sin(this.rotation.y);
+		const x = delta.x;
+		const z = delta.z;
+
+		// apply rotation
+		delta.x = x * cs - z * sn;
+		delta.z = x * sn + z * cs;
+
+		// s = (u + u + at)t / 2
+		// s = u * t + 0.5 * a * t * t
+
+		// delta.multiply(dt * dt * 0.5)
+		// this.velocity.multiply(dt).add(delta.multiply(dt * dt * 0.5))
+		// this.velocity.lerp(delta, 0.6);
+
+		const speed = 0.001 * dt;
 		this.camera.move(delta.multiply(speed));
 	}
 	onPointerLockChange (e) {
@@ -61,7 +77,6 @@ export class FirstPersonControls {
 	}
 	onKeyDown (e) {
 		e.preventDefault();
-
 		switch (e.key) {
 			case "w":
 			case "a":
@@ -75,7 +90,6 @@ export class FirstPersonControls {
 	}
 	onKeyUp (e) {
 		e.preventDefault();
-
 		switch (e.key) {
 			case "w":
 			case "a":
