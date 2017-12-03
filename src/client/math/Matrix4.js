@@ -30,7 +30,7 @@ export class Matrix4 {
 	}
 
 	clone () {
-		return new Matrix().copy(this);
+		return new Matrix4().copy(this);
 	}
 
 	identity () {
