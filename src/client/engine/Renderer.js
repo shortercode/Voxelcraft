@@ -7,7 +7,7 @@ import { createShader, getFragmentSource, getVertexSource, getAttributes, getUni
 export class Renderer {
 	constructor () {
 		this.element = document.createElement('canvas');
-		this.context = this.element.getContext("webgl");
+		this.context = this.element.getContext("webgl", { antialias: true } );
 		this.pixelRatio = devicePixelRatio;
 		this.camera = null;
 		this.scene = null;
@@ -20,6 +20,8 @@ export class Renderer {
 		gl.clearDepth(1);
 		gl.enable(gl.DEPTH_TEST);
 		gl.depthFunc(gl.LEQUAL);
+		gl.enable(gl.CULL_FACE);
+		gl.cullFace(gl.BACK);
 	}
 	createCamera (aspect, fov, near, far) {
 		return new Camera (aspect, fov, near, far);
@@ -81,6 +83,8 @@ export class Renderer {
 		gl.uniformMatrix4fv(shader.uniforms.perspective, false, this.camera.perspective.elements);
 
 		let texture = null;
+		let textureBuffer = null;
+		let vertexBuffer = null;
 
 		for (const entity of this.scene.entities()) {
 			if (!entity.texture)
@@ -88,13 +92,23 @@ export class Renderer {
 
 			const entityMatrix = entity.update();
 			gl.uniformMatrix4fv(shader.uniforms.entity, false, entityMatrix.elements);
-			// texture buffer
-			gl.bindBuffer(gl.ARRAY_BUFFER, entity.textureBuffer);
-			gl.vertexAttribPointer(shader.attributes.textureBuffer, 2, gl.FLOAT, false, 0, 0);
-			// vertex buffer
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
-			gl.bindBuffer(gl.ARRAY_BUFFER, entity.vertexBuffer);
-			gl.vertexAttribPointer(shader.attributes.vertexBuffer, 3, gl.FLOAT, false, 0, 0);
+			
+			if (textureBuffer != entity.textureBuffer)
+			{
+				// texture buffer
+				gl.bindBuffer(gl.ARRAY_BUFFER, entity.textureBuffer);
+				gl.vertexAttribPointer(shader.attributes.textureBuffer, 2, gl.FLOAT, false, 0, 0);
+				textureBuffer = entity.textureBuffer;
+			}
+
+			if (vertexBuffer != entity.vertexBuffer)
+			{
+				// vertex buffer
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
+				gl.bindBuffer(gl.ARRAY_BUFFER, entity.vertexBuffer);
+				gl.vertexAttribPointer(shader.attributes.vertexBuffer, 3, gl.FLOAT, false, 0, 0);
+				vertexBuffer = entity.vertexBuffer;
+			}
 
 			if (texture != entity.texture)
 			{
