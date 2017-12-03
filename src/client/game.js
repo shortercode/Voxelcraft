@@ -18,32 +18,40 @@ class Game extends Dispatcher {
 		this.renderer.setScene(this.scene);
 		this.renderer.setShader(this.shader);
 
-		for (let x = -10; x < 10; x++) {
-			for (let y = -10; y < 10; y++) {
-				for (let z = -10; z < 10; z++) {
-					const cube = this.renderer.createEntity();
-					this.scene.add(cube);
-					cube.move(x, y, z);
-					cube.makeCube(0.1, 0.1, 0.1);
-					cube.setTexture("textures/bdc_stone01.png");
+		(async () => {
+			const cube = this.renderer.createEntity();
+			cube.makeCube(0.1, 0.1, 0.1);
+			await cube.setTexture("textures/bdc_stone01.png");
+
+			for (let x = -10; x < 10; x++) {
+				for (let y = -10; y < 10; y++) {
+					for (let z = -10; z < 10; z++) {
+						const obj = cube.clone();
+						obj.move(x, y, z);
+						this.scene.add(obj);
+						// this.scene.add(cube);
+						// cube.move(x, y, z);
+						// cube.makeCube(0.1, 0.1, 0.1);
+						// cube.setTexture("textures/bdc_stone01.png");
+					}
 				}
 			}
-		}
 
-		let time = performance.now();
-		const tick = () => {
-			requestAnimationFrame(tick);
-			const current = performance.now();
-			const dt = current - time;
-			time = current;
-			this.tick(dt);
-		};
+			let time = performance.now();
+			const tick = () => {
+				requestAnimationFrame(tick);
+				const current = performance.now();
+				const dt = current - time;
+				time = current;
+				this.tick(dt);
+			};
 
-		tick();
+			tick();
 
-		document.body.appendChild(this.renderer.element);
+			document.body.appendChild(this.renderer.element);
 
-		this.renderer.element.requestPointerLock();
+			this.renderer.element.requestPointerLock();
+		})();
 	}
 	tick (dt) {
 		this.emit("frame", dt);
