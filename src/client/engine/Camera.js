@@ -26,7 +26,6 @@ export class Camera {
 		const left = aspect * bottom;
 		const right = -left;
 
-		console.log(left, right, top, bottom, near, far);
 		this.perspective.perspective(left, right, top, bottom, near, far);
 		this.shouldUpdate = true;
 	}
