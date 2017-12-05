@@ -7,7 +7,7 @@ import { createShader, getFragmentSource, getVertexSource, getAttributes, getUni
 export class Renderer {
 	constructor () {
 		this.element = document.createElement('canvas');
-		this.context = this.element.getContext("webgl", { antialias: true } );
+		this.context = this.element.getContext("webgl2", { premultipliedAlpha: true, antialias: true } );
 		this.pixelRatio = devicePixelRatio;
 		this.camera = null;
 		this.scene = null;
@@ -16,12 +16,19 @@ export class Renderer {
 		this.height = 0;
 
 		const gl = this.context;
-		gl.clearColor(0, 0, 0, 1);
+
+		gl.clearColor(0x7F / 0xFF, 0xB1 / 0xFF, 0xFF / 0xFF, 1);
 		gl.clearDepth(1);
+
 		gl.enable(gl.DEPTH_TEST);
-		gl.depthFunc(gl.LEQUAL);
-		gl.enable(gl.CULL_FACE);
+		gl.depthFunc(gl.LESS);
+
+		gl.disable(gl.CULL_FACE);
 		gl.cullFace(gl.BACK);
+
+		// gl.enable(gl.BLEND);
+		// //gl.blendEquation( gl.FUNC_ADD );
+		// gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
 	}
 	createCamera (aspect, fov, near, far) {
 		return new Camera (aspect, fov, near, far);
@@ -49,6 +56,12 @@ export class Renderer {
 	setShader (s) {
 		this.shader = s;
 		s.use();
+	}
+	setAtlas (t) {
+		this.atlas = t;
+		const gl = this.context;
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, this.atlas);
 	}
 	setSize (width, height) {
 		const correctedWidth = width * this.pixelRatio;
@@ -87,12 +100,9 @@ export class Renderer {
 		let vertexBuffer = null;
 
 		for (const entity of this.scene.entities()) {
-			if (!entity.texture)
-				continue;
-
 			const entityMatrix = entity.update();
 			gl.uniformMatrix4fv(shader.uniforms.entity, false, entityMatrix.elements);
-			
+
 			if (textureBuffer != entity.textureBuffer)
 			{
 				// texture buffer
@@ -109,14 +119,14 @@ export class Renderer {
 				gl.vertexAttribPointer(shader.attributes.vertexBuffer, 3, gl.FLOAT, false, 0, 0);
 				vertexBuffer = entity.vertexBuffer;
 			}
-
-			if (texture != entity.texture)
-			{
-				// texture
-				gl.activeTexture(gl.TEXTURE0);
-				gl.bindTexture(gl.TEXTURE_2D, entity.texture);
-				texture = entity.texture;
-			}
+            //
+			// if (texture != this.atl)
+			// {
+			// 	// texture
+			// 	gl.activeTexture(gl.TEXTURE0);
+			// 	gl.bindTexture(gl.TEXTURE_2D, this.atlas);
+			// 	texture = entity.texture;
+			// }
 
 			// draw
 			gl.drawElements(gl.TRIANGLES, entity.length, gl.UNSIGNED_SHORT, 0);

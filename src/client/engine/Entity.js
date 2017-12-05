@@ -1,7 +1,7 @@
 import { Vector3 } from "../math/Vector3.js";
 import { Quaternion } from "../math/Quaternion.js";
 import { Matrix4 } from "../math/Matrix4.js";
-import { loadTexture } from "./loadTexture.js";
+import { getTextureCoords } from "./loadTexture.js";
 
 export class Entity {
 	constructor (gl) {
@@ -55,9 +55,8 @@ export class Entity {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, locations, dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
 	}
-	async setTexture (src) {
-		const texture = await loadTexture(this.context, src);
-		this.texture = texture;
+	setTexture (t) {
+		this.texture = t;
 	}
 	move (x, y, z) {
 		this.position.x += x;
@@ -65,7 +64,7 @@ export class Entity {
 		this.position.z += z;
 		this.shouldUpdate = true;
 	}
-	makeCube (x, y, z) {
+	makeCube (x, y, z, front, back = front, top = front, bottom = front, right = front, left = front) {
 		x *= 0.5;
 		y *= 0.5;
 		z *= 0.5;
@@ -103,36 +102,45 @@ export class Entity {
 			-x, y, -z
 		]));
 
+		front = getTextureCoords(front);
+		back = getTextureCoords(back);
+		top = getTextureCoords(top);
+		bottom = getTextureCoords(bottom);
+		right = getTextureCoords(right);
+		left = getTextureCoords(left);
+
 		this.setTextureBuffer(new Float32Array([
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
 
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
+			front[4], front[5],
+			front[6], front[7],
+			front[0], front[1],
+			front[2], front[3],
 
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
+			back[6], back[7],
+			back[0], back[1],
+			back[2], back[3],
+			back[4], back[5],
 
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
+			top[0], top[1],
+			top[2], top[3],
+			top[4], top[5],
+			top[6], top[7],
 
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
+			bottom[0], bottom[1],
+			bottom[2], bottom[3],
+			bottom[4], bottom[5],
+			bottom[6], bottom[7],
 
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1
+			right[6], right[7],
+			right[0], right[1],
+			right[2], right[3],
+			right[4], right[5],
+
+			left[4], left[5],
+			left[6], left[7],
+			left[0], left[1],
+			left[2], left[3],
+
 		]));
 
 		this.setIndexBuffer(new Uint16Array([
