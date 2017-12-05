@@ -52,15 +52,9 @@ export class FirstPersonControls {
 		delta.x = x * cs - z * sn;
 		delta.z = x * sn + z * cs;
 
-		// s = (u + u + at)t / 2
-		// s = u * t + 0.5 * a * t * t
-
-		// delta.multiply(dt * dt * 0.5)
-		// this.velocity.multiply(dt).add(delta.multiply(dt * dt * 0.5))
-		// this.velocity.lerp(delta, 0.6);
-
-		const speed = 0.001 * dt;
-		this.camera.move(delta.multiply(speed));
+		this.velocity.lerp({x: 0, y: 0, z: 0}, 0.1);
+		this.velocity.add(delta.multiply(dt * 0.0005));
+		this.camera.move(this.velocity);
 	}
 	onPointerLockChange (e) {
 		if (document.pointerLockElement === this.canvas) {
