@@ -77,7 +77,7 @@ export async function createAtlas (gl, images, texSize) {
 	gl.bindTexture(TEX_2D, texture);
 	gl.texImage2D(TEX_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlasBitmap);
 	gl.texParameteri(TEX_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	gl.texParameteri(TEX_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+	gl.texParameteri(TEX_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.generateMipmap(TEX_2D);
 	gl.bindTexture(TEX_2D, null);
 
