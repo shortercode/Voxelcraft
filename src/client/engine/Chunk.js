@@ -2,8 +2,8 @@ import { Entity } from "./Entity.js";
 import { Block } from "./Block.js";
 
 export class Chunk {
-	constructor (gl, atlas, width, height, defaultBlock) {
-
+	constructor (gl, width, height, defaultBlock) {
+		// this.positon = new Vect
 		this.width = width;
 		this.area = width ** 2;
 		this.height = height;
@@ -18,7 +18,6 @@ export class Chunk {
 		}
 
 		this.entity = new Entity(gl);
-		this.entity.setTexture(atlas);
 
 		this.render();
 	}
@@ -133,5 +132,27 @@ export class Chunk {
 		this.entity.setIndexBuffer(indexArray);
 
 		console.timeEnd	("render");
+	}
+	save () {
+		const length = this.area * this.height;
+		const data  = new Uint16Array(length);
+		let i = 0;
+
+		for (let y = 0; y < this.height; y++) {
+			for (const block of this.elements[y]) {
+				data[i++] = block.id;
+			}
+		}
+
+		return data;
+	}
+	static load (data) {
+		let i = 0;
+		for (let y = 0; y < this.height; y++) {
+			for (let n = 0; n < this.area; n++) {
+				const block = Block.get(data[i++]);
+				this.elements[y][n] = block.instance();
+			}
+		}
 	}
 }
