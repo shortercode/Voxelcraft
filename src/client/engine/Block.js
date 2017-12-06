@@ -1,6 +1,8 @@
 import { Vector3 } from "../math/Vector3.js";
 import { getTextureCoords } from "./loadTexture.js";
 
+const register = new Map();
+
 export class Block {
 	constructor (id, opaque) {
 		this.id = id;
@@ -12,7 +14,9 @@ export class Block {
 			right: getTextureCoords("default"),
 			front: getTextureCoords("default"),
 			back: getTextureCoords("default")
-		}
+		};
+
+		register.set(id, this);
 	}
 	setAllTextures (src) {
 		const coords = getTextureCoords(src);
@@ -31,6 +35,12 @@ export class Block {
 	}
 	instance () {
 		return this;
+	}
+	destroy (n) {
+
+	}
+	static get (id) {
+		return register.get(id);
 	}
 }
 
