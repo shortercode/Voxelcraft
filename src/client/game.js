@@ -39,28 +39,10 @@ class Game extends Dispatcher {
 			dirt.setTexture("right", "test_right");
 			dirt.setTexture("bottom", "test_bottom");
 			dirt.setTexture("top", "test_top");
-			const chunk = new Chunk(this.renderer.context, atlas, 16, 100, dirt);
+			const chunk = new Chunk(this.renderer.context, 16, 100, dirt);
 
 			this.renderer.setAtlas(atlas);
 			this.scene.add(chunk.entity);
-			// const cube = this.renderer.createEntity();
-			// cube.makeCube(0.1, 0.1, 0.1, "piston_side", "piston_side", "piston_top_normal", "piston_bottom", "piston_side", "piston_side");
-			// // cube.makeCube(0.1, 0.1, 0.1, "textures/TestImage.png");
-			// // await cube.setTexture("textures/bdc_stone01.png");
-            //
-			// for (let x = -10; x < 10; x++) {
-			// 	for (let y = -10; y < 10; y++) {
-			// 		for (let z = -10; z < 10; z++) {
-			// 			const obj = cube.clone();
-			// 			obj.move(x, y, z);
-			// 			this.scene.add(obj);
-			// 			// this.scene.add(cube);
-			// 			// cube.move(x, y, z);
-			// 			// cube.makeCube(0.1, 0.1, 0.1);
-			// 			// cube.setTexture("textures/bdc_stone01.png");
-			// 		}
-			// 	}
-			// }
 
 			let time = performance.now();
 			const tick = () => {
@@ -75,7 +57,7 @@ class Game extends Dispatcher {
 
 			document.body.appendChild(this.renderer.element);
 
-			this.renderer.element.requestPointerLock();
+			//this.renderer.element.requestPointerLock();
 		})();
 	}
 	tick (dt) {
