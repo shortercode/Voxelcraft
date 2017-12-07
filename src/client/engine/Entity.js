@@ -17,6 +17,25 @@ export class Entity {
 		this.texture = null;
 		this.shouldUpdate = true;
 	}
+	release () {
+		const gl = this.context;
+
+		gl.deleteBuffer(this.vertexBuffer);
+		gl.deleteBuffer(this.indexBuffer);
+		gl.deleteBuffer(this.textureBuffer);
+
+		this.context = null;
+		this.position = null;
+		this.rotation = null;
+		this.scale = null;
+		this.matrix = null;
+		this.length = 0;
+		this.vertexBuffer = null;
+		this.indexBuffer = null;
+		this.textureBuffer = null;
+		this.texture = null;
+		this.shouldUpdate = true;
+	}
 	clone () {
 		const clone = new Entity(this.context);
 		clone.position = this.position.clone();
@@ -57,6 +76,10 @@ export class Entity {
 	}
 	setTexture (t) {
 		this.texture = t;
+	}
+	setPosition (v) {
+		this.positon.copy(v);
+		this.shouldUpdate = true;
 	}
 	move (x, y, z) {
 		this.position.x += x;
