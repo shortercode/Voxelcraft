@@ -46,6 +46,8 @@ export async function createAtlas (gl, images, texSize) {
 	canvas.width = size;
 	canvas.height = size;
 
+	ctx.fillRect(0, 0, size, size);
+
 	for (let x = 0, i = 0; x < n; x++) {
 		for (let y = 0; y < n; y++, i++) {
 			const image = bitmaps[i];
@@ -76,8 +78,8 @@ export async function createAtlas (gl, images, texSize) {
 
 	gl.bindTexture(TEX_2D, texture);
 	gl.texImage2D(TEX_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlasBitmap);
-	gl.texParameteri(TEX_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	gl.texParameteri(TEX_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(TEX_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(TEX_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
 	gl.generateMipmap(TEX_2D);
 	gl.bindTexture(TEX_2D, null);
 
