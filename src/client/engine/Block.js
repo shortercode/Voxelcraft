@@ -1,11 +1,12 @@
 import { Vector3 } from "../math/Vector3.js";
-import { getTextureCoords } from "./loadTexture.js";
+import { getTextureCoords, createAtlas } from "./loadTexture.js";
 
 const register = new Map();
 
 export class Block {
-	constructor (id, opaque) {
+	constructor (id, name, opaque) {
 		this.id = id;
+		this.name = name;
 		this.opaque = opaque;
 		this.textures = {
 			top: getTextureCoords("default"),
@@ -28,9 +29,13 @@ export class Block {
 		this.textures["back"] = coords;
 	}
 	setTexture (side, src) {
+		if (!src)
+			console.warn(`${this.name} is missing texture ${side}`);
 		this.textures[side] = getTextureCoords(src);
 	}
 	getTexture (side) {
+		if (!this.textures[side])
+			console.warn(`${this.name} is missing texture ${side}`);
 		return this.textures[side];
 	}
 	instance () {
@@ -41,6 +46,52 @@ export class Block {
 	}
 	static get (id) {
 		return register.get(id);
+	}
+	static async parseDefinitions (gl, src) {
+		const response = await fetch(src);
+		const definitions = await response.json();
+
+		const textures = [];
+		const callbacks = [];
+
+		const setTexture = (block, side, src) => {
+			if (src)
+				textures.push(src);
+			callbacks.push(() => block.setTexture(side, src));
+		};
+
+		for (const def of definitions) {
+			const {
+				id,
+				name,
+				opaque,
+				texture,
+				side = texture,
+				front = side,
+				back = side,
+				left = side,
+				right = side,
+				top = texture,
+				bottom = top
+			} = def;
+
+			if (opaque && !(top && bottom && left && right && front && back))
+				throw new Error("Undefined texture for block");
+
+			const block = new Block(id, name, opaque);
+			setTexture(block, "top", top);
+			setTexture(block, "bottom", bottom);
+			setTexture(block, "left", left);
+			setTexture(block, "right", right);
+			setTexture(block, "front", front);
+			setTexture(block, "back", back);
+		}
+
+		const atlas = await createAtlas(gl, textures, 32);
+
+		callbacks.forEach(fn => fn());
+
+		return atlas;
 	}
 }
 

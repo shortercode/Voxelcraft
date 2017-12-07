@@ -9,10 +9,12 @@ export class Chunk {
 		this.height = height;
 		this.elements = [];
 
+		const blockType = Block.get(defaultBlock);
+
 		for (let i = 0; i < height; i++) {
 			const plane = [];
 			for (let ii = 0; ii < this.area; ii++) {
-				plane.push(defaultBlock.instance());
+				plane.push(blockType.instance());
 			}
 			this.elements.push(plane);
 		}
@@ -20,6 +22,9 @@ export class Chunk {
 		this.entity = new Entity(gl);
 
 		this.render();
+	}
+	setPosition (v) {
+		this.entity.setPosition(v);
 	}
 	render () {
 		console.time("render");

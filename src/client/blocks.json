@@ -1,0 +1,38 @@
+[
+	{
+		"id": 0,
+		"name": "test",
+		"opaque": true,
+		"front": "test_front",
+		"back": "test_back",
+		"left": "test_left",
+		"right": "test_right",
+		"bottom": "test_bottom",
+		"top": "test_top"
+	},
+	{
+		"id": 1,
+		"name": "air",
+		"opaque": false
+	},
+	{
+		"id": 2,
+		"name": "dirt",
+		"opaque": true,
+		"texture": "dirt"
+	},
+	{
+		"id": 3,
+		"name": "stone",
+		"opaque": true,
+		"texture": "stone"
+	},
+	{
+		"id": 4,
+		"name": "oak",
+		"opaque": true,
+		"top": "oak_top",
+		"side": "oak_side",
+		"bottom": "oak_top"
+	}
+]

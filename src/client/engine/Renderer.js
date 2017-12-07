@@ -7,7 +7,7 @@ import { createShader, getFragmentSource, getVertexSource, getAttributes, getUni
 export class Renderer {
 	constructor () {
 		this.element = document.createElement('canvas');
-		this.context = this.element.getContext("webgl2", { premultipliedAlpha: true, antialias: true } );
+		this.context = this.element.getContext("webgl2", { premultipliedAlpha: true, antialias: false } );
 		this.pixelRatio = devicePixelRatio;
 		this.camera = null;
 		this.scene = null;

@@ -22,24 +22,26 @@ class Game extends Dispatcher {
 		this.renderer.setShader(this.shader);
 
 		(async () => {
-			const atlas = await createAtlas(this.renderer.context, [
-				"test_front",
-				"test_back",
-				"test_left",
-				"test_right",
-				"test_bottom",
-				"test_top"
-			], 128);
+			// const atlas = await createAtlas(this.renderer.context, [
+			// 	"test_front",
+			// 	"test_back",
+			// 	"test_left",
+			// 	"test_right",
+			// 	"test_bottom",
+			// 	"test_top"
+			// ], 128);
 
-			const dirt = new Block(0, true);
-			//dirt.setAllTextures("stone");
-			dirt.setTexture("front", "test_front");
-			dirt.setTexture("back", "test_back");
-			dirt.setTexture("left", "test_left");
-			dirt.setTexture("right", "test_right");
-			dirt.setTexture("bottom", "test_bottom");
-			dirt.setTexture("top", "test_top");
-			const chunk = new Chunk(this.renderer.context, 16, 100, dirt);
+			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
+
+			// const dirt = new Block(0, true);
+			// //dirt.setAllTextures("stone");
+			// dirt.setTexture("front", "test_front");
+			// dirt.setTexture("back", "test_back");
+			// dirt.setTexture("left", "test_left");
+			// dirt.setTexture("right", "test_right");
+			// dirt.setTexture("bottom", "test_bottom");
+			// dirt.setTexture("top", "test_top");
+			const chunk = new Chunk(this.renderer.context, 16, 100, 2);
 
 			this.renderer.setAtlas(atlas);
 			this.scene.add(chunk.entity);
@@ -54,6 +56,8 @@ class Game extends Dispatcher {
 			};
 
 			tick();
+
+			this.camera.move({y: -105});
 
 			document.body.appendChild(this.renderer.element);
 
