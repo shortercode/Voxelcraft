@@ -3,7 +3,7 @@ import { FirstPersonControls } from "./engine/FirstPersonControls.js";
 import { Stat } from "./engine/Stat.js";
 import { Dispatcher } from "./events/Dispatcher.js";
 import { createAtlas } from "./engine/loadTexture.js";
-import { Chunk } from "./engine/Chunk.js";
+import { ChunkManager } from "./engine/ChunkManager.js";
 import { Block } from "./engine/Block.js";
 
 class Game extends Dispatcher {
@@ -32,7 +32,7 @@ class Game extends Dispatcher {
 			// ], 128);
 
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
-
+			const chunkManager = new ChunkManager(this, 20, 100, 9);
 			// const dirt = new Block(0, true);
 			// //dirt.setAllTextures("stone");
 			// dirt.setTexture("front", "test_front");
@@ -41,10 +41,10 @@ class Game extends Dispatcher {
 			// dirt.setTexture("right", "test_right");
 			// dirt.setTexture("bottom", "test_bottom");
 			// dirt.setTexture("top", "test_top");
-			const chunk = new Chunk(this.renderer.context, 16, 100, 2);
+			//const chunk = new Chunk(this.renderer.context, 16, 100, 2);
 
 			this.renderer.setAtlas(atlas);
-			this.scene.add(chunk.entity);
+			//this.scene.add(chunk.entity);
 
 			let time = performance.now();
 			const tick = () => {
@@ -57,12 +57,15 @@ class Game extends Dispatcher {
 
 			tick();
 
-			this.camera.move({y: -105});
+			this.camera.move({y: -105, z: 5, x: 5});
 
 			document.body.appendChild(this.renderer.element);
 
 			//this.renderer.element.requestPointerLock();
 		})();
+	}
+	getCameraPosition () {
+		return this.camera.position.clone();
 	}
 	tick (dt) {
 		this.emit("frame", dt);

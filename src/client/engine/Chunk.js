@@ -1,35 +1,132 @@
 import { Entity } from "./Entity.js";
 import { Block } from "./Block.js";
+import { Vector3 } from "../math/Vector3.js";
+import { simplex2 } from "./noise.js";
+
+function noise(x, y, freq) {
+	x = freq * x;
+	y = freq * y;
+	const n = simplex2(x, y)
+		+ 0.5 * simplex2(2 * x, 2 * y)
+		+ 0.25 * simplex2(4 * x, 4 * y);
+		//+ 0.125 * simplex2(x * 8, y  * 8);
+
+	return (n + 1) * 0.5;
+}
 
 export class Chunk {
-	constructor (gl, width, height, defaultBlock) {
-		// this.positon = new Vect
+	constructor (gl, width, height, manager) {
+		//this.position = new Vector3();
+		this.manager = manager;
 		this.width = width;
 		this.area = width ** 2;
 		this.height = height;
 		this.elements = [];
+		this.shouldRender = true;
 
-		const blockType = Block.get(defaultBlock);
+		const air = Block.get(1);
 
 		for (let i = 0; i < height; i++) {
 			const plane = [];
 			for (let ii = 0; ii < this.area; ii++) {
-				plane.push(blockType.instance());
+				plane.push(air.instance());
 			}
 			this.elements.push(plane);
 		}
 
 		this.entity = new Entity(gl);
-
-		this.render();
+	}
+	release () {
+		this.entity.release();
 	}
 	setPosition (v) {
 		this.entity.setPosition(v);
 	}
+	getPosition () {
+		return this.entity.position;
+	}
+	generate () {
+		const position = this.getPosition();
+		const size = this.width;
+		const height = this.height;
+		const baseline = 50;
+		const varience = 20;
+		const heightMap = [];
+
+		for (let x = 0; x < size; x++) {
+			for (let z = 0; z < size; z++) {
+				const xn = position.x + z;
+				const yn = position.z + x;
+				const y = noise(xn, yn, 0.01);
+
+				const value = baseline + Math.floor(y * varience);
+				heightMap.push(value);
+			}
+		}
+
+		const grass = Block.get(5);
+		const dirt = Block.get(2);
+		const stone = Block.get(3);
+		const air = Block.get(1);
+
+		for (let i = 0; i < height; i++) {
+			const plane = this.elements[i];
+			for (let ii = 0; ii < this.area; ii++) {
+				const value = heightMap[ii];
+				if (i > value) {
+					plane[ii] = air.instance();
+				}
+				else if (i == value) {
+					plane[ii] = grass.instance();
+				}
+				else if (i < value) {
+					if (i < value - 3) {
+						plane[ii] = stone.instance();
+					}
+					else {
+						plane[ii] = dirt.instance();
+					}
+				}
+			}
+			this.elements.push(plane);
+		}
+		this.shouldRender = true;
+	}
 	render () {
-		console.time("render");
-		const getBlock = (plane, x, y) => {
-			if (!plane || y < 0 || x < 0 || x >= this.width || y >= this.width)
+		if (!this.shouldRender)
+			return;
+
+		this.shouldRender = false;
+
+		const kx = this.entity.position.x / this.width;
+		const kz = this.entity.position.z / this.width;
+
+		const leftChunk = this.manager.get(`${kx - 1}_${kz}`);
+		const rightChunk = this.manager.get(`${kx + 1}_${kz}`);
+		const frontChunk = this.manager.get(`${kx}_${kz + 1}`);
+		const backChunk = this.manager.get(`${kx}_${kz - 1}`);
+
+		// console.time("render");
+		const getBlock = (n, x, y) => {
+			let plane = this.elements[n];
+
+			if (y < 0) {
+				y = this.width + y;
+				plane = backChunk && backChunk.elements[n];
+			}
+			if (x < 0) {
+				x = this.width + x;
+				plane = leftChunk && leftChunk.elements[n];
+			}
+			if (x >= this.width) {
+				x -= this.width;
+				plane = rightChunk && rightChunk.elements[n];
+			}
+			if (y >= this.width) {
+				y -= this.width;
+				plane = frontChunk && frontChunk.elements[n];
+			}
+			if (!plane)
 				return null;
 			return plane[ y * this.width + x ];
 		}
@@ -37,18 +134,15 @@ export class Chunk {
 		const faces = [];
 
 		for (let i = 0; i < this.height; i++) {
-			const previousPlane = this.elements[i - 1];
-			const currentPlane = this.elements[i];
-			const nextPlane =  this.elements[i + 1];
 			for (let x = 0; x < this.width; x++) {
 				for (let y = 0; y < this.width; y++) {
-					const current = getBlock(currentPlane, x, y);
-					const top = getBlock(nextPlane, x, y);
-					const bottom = getBlock(previousPlane, x, y);
-					const front = getBlock(currentPlane, x, y + 1);
-					const back = getBlock(currentPlane, x, y - 1);
-					const left = getBlock(currentPlane, x - 1, y);
-					const right = getBlock(currentPlane, x + 1, y);
+					const current = getBlock(i, x, y);
+					const top = getBlock(i + 1, x, y);
+					const bottom = getBlock(i - 1, x, y);
+					const front = getBlock(i, x, y + 1);
+					const back = getBlock(i, x, y - 1);
+					const left = getBlock(i, x - 1, y);
+					const right = getBlock(i, x + 1, y);
 
 					if (!current.opaque)
 						continue;
@@ -136,7 +230,7 @@ export class Chunk {
 		this.entity.setTextureBuffer(textureArray);
 		this.entity.setIndexBuffer(indexArray);
 
-		console.timeEnd	("render");
+		// console.timeEnd	("render");
 	}
 	save () {
 		const length = this.area * this.height;
@@ -151,7 +245,7 @@ export class Chunk {
 
 		return data;
 	}
-	static load (data) {
+	load (data) {
 		let i = 0;
 		for (let y = 0; y < this.height; y++) {
 			for (let n = 0; n < this.area; n++) {
@@ -159,5 +253,6 @@ export class Chunk {
 				this.elements[y][n] = block.instance();
 			}
 		}
+		this.shouldRender = true;
 	}
 }
