@@ -2,6 +2,8 @@ import { CompositeDisposable } from "../events/CompositeDisposable.js";
 import { Disposable } from "../events/Disposable.js";
 import { Vector3 } from "../math/Vector3.js";
 
+const GRAVITY = 0;
+
 export class FirstPersonControls {
 	constructor (doc, game, max, acc) {
 		this.canvas = game.renderer.element;
@@ -42,6 +44,9 @@ export class FirstPersonControls {
 		if (keystate[" "] != keystate.Shift) {
 			delta.y = keystate.Shift ? 1 : -1;
 		}
+		else {
+			delta.y = GRAVITY;
+		}
 
 		const cs = Math.cos(this.rotation.y);
 		const sn = Math.sin(this.rotation.y);
@@ -53,7 +58,7 @@ export class FirstPersonControls {
 		delta.z = x * sn + z * cs;
 
 		this.velocity.lerp({x: 0, y: 0, z: 0}, 0.1);
-		this.velocity.add(delta.multiply(dt * 0.0005));
+		this.velocity.add(delta.multiply(dt * 0.001));
 		this.camera.move(this.velocity);
 	}
 	onPointerLockChange (e) {
