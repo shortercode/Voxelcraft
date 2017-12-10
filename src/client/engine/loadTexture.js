@@ -33,7 +33,21 @@ export function getTextureCoords (src) {
 	return textureMap.get(src);
 }
 
+async function blendTexture (img, size, color) {
+	const canvas = document.createElement('canvas');
+	const ctx = canvas.getContext('2d');
+	canvas.width = size;
+	canvas.height = size;
+	ctx.globalCompositeOperation = "multiply";
+	ctx.drawImage(img, 0, 0);
+	ctx.fillRect(0, 0, size, size);
+
+	return await createImageBitmap(canvas);
+}
+
 export async function createAtlas (gl, images, texSize) {
+
+	images = Array.from(images);
 	const bitmaps = await Promise.all(images.map(src => fetchImage(`textures/${src}.png`)));
 	const n = Math.ceil(Math.sqrt(images.length));
 	// const m = n ** 2;
@@ -55,7 +69,17 @@ export async function createAtlas (gl, images, texSize) {
 			if (!image)
 				break;
 
+			const shouldBlend = src == "grass_top";
+			const blendColor = "#87ba45";
+
 			ctx.drawImage(image, x * texSize, y * texSize);
+
+			if (shouldBlend) {
+				ctx.globalCompositeOperation = "multiply";
+				ctx.fillStyle = blendColor;
+				ctx.fillRect(x * texSize, y * texSize, texSize, texSize);
+				ctx.globalCompositeOperation = "source-over";
+			}
 
 			const x1 = x * ln;
 			const y1 = y * ln;
