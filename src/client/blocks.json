@@ -34,5 +34,13 @@
 		"top": "oak_top",
 		"side": "oak_side",
 		"bottom": "oak_top"
+	},
+	{
+		"id": 5,
+		"name": "grass",
+		"opaque": true,
+		"top": "grass_top",
+		"side": "grass_side",
+		"bottom": "dirt"
 	}
 ]
