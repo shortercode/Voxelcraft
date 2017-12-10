@@ -78,7 +78,7 @@ export class Entity {
 		this.texture = t;
 	}
 	setPosition (v) {
-		this.positon.copy(v);
+		this.position.copy(v);
 		this.shouldUpdate = true;
 	}
 	move (x, y, z) {
