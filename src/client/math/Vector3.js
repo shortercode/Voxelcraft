@@ -90,6 +90,13 @@ export class Vector3 {
 	lengthSq () {
 		return this.x **2 + this.y ** 2 + this.z ** 2;
 	}
+	floor () {
+		this.x = Math.floor(this.x);
+		this.y = Math.floor(this.y);
+		this.z = Math.floor(this.z);
+
+		return this;
+	}
 }
 
 Vector3.UP = new Vector3(0, 1, 0);
