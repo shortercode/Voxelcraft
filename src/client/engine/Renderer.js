@@ -23,7 +23,7 @@ export class Renderer {
 		gl.enable(gl.DEPTH_TEST);
 		gl.depthFunc(gl.LESS);
 
-		gl.disable(gl.CULL_FACE);
+		gl.enable(gl.CULL_FACE);
 		gl.cullFace(gl.BACK);
 
 		// gl.enable(gl.BLEND);
