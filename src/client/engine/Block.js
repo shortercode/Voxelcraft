@@ -51,12 +51,12 @@ export class Block {
 		const response = await fetch(src);
 		const definitions = await response.json();
 
-		const textures = [];
+		const textures = new Set();
 		const callbacks = [];
 
 		const setTexture = (block, side, src) => {
 			if (src)
-				textures.push(src);
+				textures.add(src);
 			callbacks.push(() => block.setTexture(side, src));
 		};
 
@@ -96,16 +96,16 @@ export class Block {
 }
 
 Block.FRONT = [
-	new Vector3(0, 0, 1),
-	new Vector3(1, 0, 1),
 	new Vector3(1, 1, 1),
 	new Vector3(0, 1, 1),
+	new Vector3(0, 0, 1),
+	new Vector3(1, 0, 1),
 ];
 Block.BACK = [
-	new Vector3(0, 0, 0),
 	new Vector3(0, 1, 0),
 	new Vector3(1, 1, 0),
 	new Vector3(1, 0, 0),
+	new Vector3(0, 0, 0),
 ];
 Block.TOP = [
 	new Vector3(0, 1, 0),
@@ -120,14 +120,14 @@ Block.BOTTOM = [
 	new Vector3(0, 0, 1),
 ];
 Block.RIGHT = [
-	new Vector3(1, 0, 0),
 	new Vector3(1, 1, 0),
 	new Vector3(1, 1, 1),
 	new Vector3(1, 0, 1),
+	new Vector3(1, 0, 0),
 ];
 Block.LEFT = [
+	new Vector3(0, 1, 1),
+	new Vector3(0, 1, 0),
 	new Vector3(0, 0, 0),
 	new Vector3(0, 0, 1),
-	new Vector3(0, 1, 1),
-	new Vector3(0, 1, 0)
 ];
