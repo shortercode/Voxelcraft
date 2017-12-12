@@ -1,16 +1,5 @@
 [
 	{
-		"id": 0,
-		"name": "test",
-		"opaque": true,
-		"front": "test_front",
-		"back": "test_back",
-		"left": "test_left",
-		"right": "test_right",
-		"bottom": "test_bottom",
-		"top": "test_top"
-	},
-	{
 		"id": 1,
 		"name": "air",
 		"opaque": false
