@@ -16,7 +16,6 @@ function noise(x, y, freq) {
 
 export class Chunk {
 	constructor (gl, width, height, manager) {
-		//this.position = new Vector3();
 		this.manager = manager;
 		this.width = width;
 		this.area = width ** 2;
