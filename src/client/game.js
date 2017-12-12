@@ -32,7 +32,7 @@ class Game extends Dispatcher {
 			// ], 128);
 
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
-			const chunkManager = new ChunkManager(this, 20, 100, 9);
+			const chunkManager = new ChunkManager(this, 20, 100, 15);
 			// const dirt = new Block(0, true);
 			// //dirt.setAllTextures("stone");
 			// dirt.setTexture("front", "test_front");
