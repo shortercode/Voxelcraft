@@ -12,6 +12,7 @@ export class ChunkManager {
 		this.loadedChunks = new Map();
 		this.game.on("frame", dt => this.onTick(dt));
 
+		this.renderQueue = [];
 	}
 	get (key) {
 		return this.loadedChunks.get(key);
@@ -45,6 +46,23 @@ export class ChunkManager {
 			}
 		}
 
+		if (this.renderQueue.length) {
+			this.renderQueue = this.renderQueue.filter(
+				([ key, x, y, chunk ]) => this.loadedChunks.has(key)
+			).sort(
+				([ akey, ax, ay, achunk ], [ bkey, bx, by, bchunk ]) => {
+					const x = Math.abs(bx - user.x) - Math.abs(ax - user.x);
+					const y = Math.abs(by - user.z) - Math.abs(ay - user.z);
+
+					return x + y;
+				}
+			);
+
+			const [ key, x, y, chunk ] = this.renderQueue.pop();
+
+			chunk.render();
+		}
+
 		for (const [key, chunk] of this.loadedChunks) {
 			const pos = chunk.getPosition();
 			//const key = `${pos.x / this.chunkWidth}_${pos.z / this.chunkWidth}`;
@@ -58,11 +76,10 @@ export class ChunkManager {
 			}
 		}
 
-		const newChunks = [];
-
 		for (const [key, position] of shouldBeLoaded) {
 			const chunk = this.createChunk(position);
-			newChunks.push(chunk);
+			const [ x, y ] = key.split("_");
+			this.renderQueue.push([ key, x, y, chunk ]);
 			this.loadedChunks.set(key, chunk);
 			if (this.chunkTable.has(key)) {
 				chunk.load(this.chunkTable.get(key));
@@ -70,10 +87,6 @@ export class ChunkManager {
 			else {
 				chunk.generate();
 			}
-		}
-
-		for (const chunk of newChunks) {
-			chunk.render();
 		}
 	}
 	unloadChunk (chunk) {
