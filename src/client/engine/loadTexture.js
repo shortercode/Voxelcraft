@@ -49,7 +49,7 @@ export async function createAtlas (gl, images, texSize) {
 
 	images = Array.from(images);
 	const bitmaps = await Promise.all(images.map(src => fetchImage(`textures/${src}.png`)));
-	const n = Math.ceil(Math.sqrt(images.length));
+	const n = 2 ** Math.ceil(Math.log2(Math.ceil(Math.sqrt(images.length))));
 	// const m = n ** 2;
 	const size = texSize * n;
 	const canvas = document.createElement('canvas');
@@ -60,6 +60,7 @@ export async function createAtlas (gl, images, texSize) {
 	canvas.width = size;
 	canvas.height = size;
 
+	ctx.fillStyle = "black";
 	ctx.fillRect(0, 0, size, size);
 
 	for (let x = 0, i = 0; x < n; x++) {
@@ -94,6 +95,8 @@ export async function createAtlas (gl, images, texSize) {
 			]);
 		}
 	}
+
+	//document.body.appendChild(canvas);
 
 	const atlasBitmap = await createImageBitmap(canvas);
 
