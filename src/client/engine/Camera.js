@@ -43,6 +43,10 @@ export class Camera {
 		this.position.add(delta);
 		this.shouldUpdate = true;
 	}
+	setPosition (v) {
+		this.position.copy(v);
+		this.shouldUpdate = true;
+	}
 	rotate (x, y, z) {
 		this.rotation.setEular(x, y, z);
 		this.shouldUpdate = true;
