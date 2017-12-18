@@ -15,6 +15,14 @@ export class ChunkManager {
 		this.renderQueue = [];
 	}
 	getBlockAt (x, y, z) {
+
+		x = Math.floor(-x);
+		y = Math.floor(-y);
+		z = Math.floor(-z);
+
+		if (y >= this.chunkHeight || y < 0)
+			return null;
+
 		const w = this.chunkWidth;
 		const d = 1 / w;
 
@@ -27,7 +35,7 @@ export class ChunkManager {
 		if (!chunk)
 			return null;
 
-		const plane = chunk.elements[-y];
+		const plane = chunk.elements[y];
 
 		x = x % w;
 		z = z % w;
