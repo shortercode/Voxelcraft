@@ -51,8 +51,19 @@ export class Vector3 {
 
 		return this;
 	}
+	inverse () {
+		return this.multiply(-1);
+	}
+	power (n) {
+		this.x = Math.pow(this.x, n);
+		this.y = Math.pow(this.y, n);
+		this.z = Math.pow(this.z, n);
+
+		return this;
+	}
 	normalise () {
-		const d = 1 / this.length();
+		let d = this.length();
+		d = d == 0 ? 1 : 1 / d;
 
 		this.x *= d;
 		this.y *= d;
