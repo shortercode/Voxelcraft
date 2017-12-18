@@ -14,6 +14,7 @@ class Game extends Dispatcher {
 		this.camera = this.renderer.createCamera(1, 45, 0.1, 1000);
 		this.scene = this.renderer.createScene();
 		this.shader = this.renderer.createDefaultShader();
+		this.chunkManager = null;
 
 		this.controls = new FirstPersonControls(document, this);
 
@@ -32,7 +33,8 @@ class Game extends Dispatcher {
 			// ], 128);
 
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
-			const chunkManager = new ChunkManager(this, 20, 100, 15);
+			this.chunkManager = new ChunkManager(this, 16, 100, 10);
+
 			// const dirt = new Block(0, true);
 			// //dirt.setAllTextures("stone");
 			// dirt.setTexture("front", "test_front");
