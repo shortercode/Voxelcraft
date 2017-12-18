@@ -101,6 +101,9 @@ export class Vector3 {
 	lengthSq () {
 		return this.x **2 + this.y ** 2 + this.z ** 2;
 	}
+	isNaN () {
+		return isNaN(this.x) || isNaN(this.y) || isNaN(this.z);
+	}
 	floor () {
 		this.x = Math.floor(this.x);
 		this.y = Math.floor(this.y);
