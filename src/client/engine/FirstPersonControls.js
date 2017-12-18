@@ -1,6 +1,7 @@
 import { CompositeDisposable } from "../events/CompositeDisposable.js";
 import { Disposable } from "../events/Disposable.js";
 import { Vector3 } from "../math/Vector3.js";
+import { raycast } from "./raycast.js";
 
 const GRAVITY = 0;
 
@@ -17,6 +18,7 @@ export class FirstPersonControls {
 
 		this.moveListener = null;
 		this.max = max;
+		this.game = game;
 		this.rotation = new Vector3(0, 0, 0);
 		this.velocity = new Vector3(0, 0, 0);
 		this.camera = game.camera;
@@ -57,9 +59,44 @@ export class FirstPersonControls {
 		delta.x = x * cs - z * sn;
 		delta.z = x * sn + z * cs;
 
-		this.velocity.lerp({x: 0, y: 0, z: 0}, 0.1);
-		this.velocity.add(delta.multiply(dt * 0.001));
-		this.camera.move(this.velocity);
+		//return
+
+		dt *= 0.05;
+
+		const drag = 0.27;
+
+		const start = this.camera.position;
+		const velocity = this.velocity;
+		const acceleration = delta;
+		const finish = velocity.clone().multiply(dt).add(start);
+
+		let n = 10;
+
+		raycast (start, finish, (x, y, z) => {
+			n--;
+			if (n < 0)
+				return true;
+			const block = this.game.chunkManager.getBlockAt(x, y, z);
+		    if (block && block.opaque) {
+				finish.x = x;
+				finish.y = y;
+				finish.z = z;
+				return true;
+		        // stop
+		    }
+		});
+        //
+		this.camera.setPosition(finish);
+        //
+		// // full: F = 0.5 * fluidDensity * velocity ** 2 * dragCoefficient * area
+		// // simplified: F = velocity ** 2 * drag
+		const magnitude = velocity.length() ** 2;
+		const deceleration = velocity.clone().normalise().multiply(-drag * magnitude);
+
+		acceleration.add(deceleration).multiply(dt);
+		velocity.add(acceleration);
+
+
 	}
 	onPointerLockChange (e) {
 		if (document.pointerLockElement === this.canvas) {
