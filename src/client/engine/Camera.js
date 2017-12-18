@@ -44,6 +44,8 @@ export class Camera {
 		this.shouldUpdate = true;
 	}
 	setPosition (v) {
+		if (v.isNaN())
+			throw new Error("Position is NaN");
 		this.position.copy(v);
 		this.shouldUpdate = true;
 	}
