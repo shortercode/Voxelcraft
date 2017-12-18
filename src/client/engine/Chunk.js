@@ -87,7 +87,7 @@ export class Chunk {
 					}
 				}
 			}
-			this.elements.push(plane);
+			//this.elements.push(plane);
 		}
 		this.shouldRender = true;
 	}
