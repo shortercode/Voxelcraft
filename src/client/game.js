@@ -13,6 +13,13 @@ class Game extends Dispatcher {
 		this.renderer = new Renderer();
 		this.camera = this.renderer.createCamera(1, 45, 0.1, 1000);
 		this.scene = this.renderer.createScene();
+
+		this.solidScene = this.renderer.createScene();
+		this.transparentScene = this.renderer.createScene();
+
+		this.scene.add(this.solidScene);
+		this.scene.add(this.transparentScene);
+
 		this.shader = this.renderer.createDefaultShader();
 		this.chunkManager = null;
 
@@ -33,7 +40,7 @@ class Game extends Dispatcher {
 			// ], 128);
 
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
-			this.chunkManager = new ChunkManager(this, 16, 100, 10);
+			this.chunkManager = new ChunkManager(this, 16, 100, 14);
 
 			// const dirt = new Block(0, true);
 			// //dirt.setAllTextures("stone");

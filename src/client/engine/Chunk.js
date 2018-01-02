@@ -1,17 +1,26 @@
 import { Entity } from "./Entity.js";
 import { Block } from "./Block.js";
 import { Vector3 } from "../math/Vector3.js";
-import { simplex2 } from "./noise.js";
+import { Noise } from "../math/Noise.js";
 
-function noise(x, y, freq) {
+const terrainNoise = new Noise();
+const bioNoise = new Noise(16);
+
+function randomHeight(x, y, freq) {
 	x = freq * x;
 	y = freq * y;
-	const n = simplex2(x, y)
-		+ 0.5 * simplex2(2 * x, 2 * y)
-		+ 0.25 * simplex2(4 * x, 4 * y);
+	const n = terrainNoise.simplex2(x, y)
+		+ 0.25 * terrainNoise.simplex2(2 * x, 2 * y)
+		+ 0.125 * terrainNoise.simplex2(4 * x, 4 * y);
 		//+ 0.125 * simplex2(x * 8, y  * 8);
 
-	return (n + 1) * 0.5;
+	return n / (1 + 0.5 + 0.25);
+}
+
+function biomeValue(x, y, freq) {
+	x = freq * x;
+	y = freq * y;
+	return bioNoise.simplex2(x, y);
 }
 
 export class Chunk {
@@ -21,7 +30,6 @@ export class Chunk {
 		this.area = width ** 2;
 		this.height = height;
 		this.elements = [];
-		this.shouldRender = true;
 
 		const air = Block.get(1);
 
@@ -34,12 +42,15 @@ export class Chunk {
 		}
 
 		this.entity = new Entity(gl);
+		this.secondaryEntity = new Entity(gl);
 	}
 	release () {
 		this.entity.release();
+		this.secondaryEntity.release();
 	}
 	setPosition (v) {
 		this.entity.setPosition(v);
+		this.secondaryEntity.setPosition(v);
 	}
 	getPosition () {
 		return this.entity.position;
@@ -48,18 +59,32 @@ export class Chunk {
 		const position = this.getPosition();
 		const size = this.width;
 		const height = this.height;
-		const baseline = 50;
-		const varience = 20;
+		const baseline = 30;
+		const varience = 70;
 		const heightMap = [];
+		const treeMap = [];
+		const biomeMap = [];
+
+		const treeBaseline = 0.90;
+		const waterHeight = 50;
 
 		for (let x = 0; x < size; x++) {
 			for (let z = 0; z < size; z++) {
 				const xn = position.x + z;
 				const yn = position.z + x;
-				const y = noise(xn, yn, 0.01);
+				const y = randomHeight(xn, yn, 0.01) ** 1.0;
 
-				const value = baseline + Math.floor(y * varience);
-				heightMap.push(value);
+				const blockHeight = baseline + Math.floor(y * varience);
+				const treeHeight = biomeValue(xn, yn, 1);
+				const biome = biomeValue(xn, yn, 0.01);
+				heightMap.push(blockHeight);
+
+				if (biome > 0.2 && treeHeight > treeBaseline) {
+					treeMap.push(blockHeight + 3 + 60 * (treeHeight - treeBaseline));
+				}
+				else {
+					treeMap.push(blockHeight);
+				}
 			}
 		}
 
@@ -67,36 +92,58 @@ export class Chunk {
 		const dirt = Block.get(2);
 		const stone = Block.get(3);
 		const air = Block.get(1);
+		const oak = Block.get(4);
+		const water = Block.get(6);
+		const sand = Block.get(7);
 
 		for (let i = 0; i < height; i++) {
 			const plane = this.elements[i];
 			for (let ii = 0; ii < this.area; ii++) {
-				const value = heightMap[ii];
-				if (i > value) {
-					plane[ii] = air.instance();
-				}
-				else if (i == value) {
-					plane[ii] = grass.instance();
-				}
-				else if (i < value) {
-					if (i < value - 3) {
-						plane[ii] = stone.instance();
+				const ground = heightMap[ii];
+				const tree = treeMap[ii];
+				const underWater = ground <= waterHeight;
+
+				if (underWater) {
+					if (i > waterHeight) {
+						plane[ii] = air.instance();
 					}
-					else {
-						plane[ii] = dirt.instance();
+					else if (i > ground) {
+						plane[ii] = water.instance();
+					}
+					else if (i <= ground) {
+						if (i < ground - 3) {
+							plane[ii] = stone.instance();
+						}
+						else {
+							plane[ii] = sand.instance();
+						}
+					}
+				}
+				else {
+					if (i > ground) {
+						if (i <= tree) {
+							plane[ii] = oak.instance();
+						}
+						else {
+							plane[ii] = air.instance();
+						}
+					}
+					else if (i == ground) {
+						plane[ii] = grass.instance();
+					}
+					else if (i < ground) {
+						if (i < ground - 3) {
+							plane[ii] = stone.instance();
+						}
+						else {
+							plane[ii] = dirt.instance();
+						}
 					}
 				}
 			}
-			//this.elements.push(plane);
 		}
-		this.shouldRender = true;
 	}
 	render () {
-		if (!this.shouldRender)
-			return;
-
-		this.shouldRender = false;
-
 		const kx = this.entity.position.x / this.width;
 		const kz = this.entity.position.z / this.width;
 
@@ -130,7 +177,8 @@ export class Chunk {
 			return plane[ y * this.width + x ];
 		}
 
-		const faces = [];
+		const primaryFaces = [];
+		const secondaryFaces = [];
 
 		for (let i = 0; i < this.height; i++) {
 			for (let x = 0; x < this.width; x++) {
@@ -143,33 +191,64 @@ export class Chunk {
 					const left = getBlock(i, x - 1, y);
 					const right = getBlock(i, x + 1, y);
 
-					if (!current.opaque)
+					if (!current.solid)
 						continue;
 
 					const positon = [ x, i, y ];
-					if (!top || !top.opaque) {
-						faces.push([ Block.TOP, positon, current.getTexture("top") ]);
+					//const faces = primaryFaces;
+					if (current.transparent) {
+						const faces = secondaryFaces;
+
+						if (!top || !top.solid) {
+							faces.push([ Block.TOP, positon, current.getTexture("top") ]);
+						}
+						if (!bottom || !bottom.solid) {
+							faces.push([ Block.BOTTOM, positon, current.getTexture("bottom") ]);
+						}
+						if (!front || !front.solid) {
+							faces.push([ Block.FRONT, positon, current.getTexture("front") ]);
+						}
+						if (!back || !back.solid) {
+							faces.push([ Block.BACK, positon, current.getTexture("back") ]);
+						}
+						if (!left || !left.solid) {
+							faces.push([ Block.LEFT, positon, current.getTexture("left") ]);
+						}
+						if (!right || !right.solid) {
+							faces.push([ Block.RIGHT, positon, current.getTexture("right") ]);
+						}
 					}
-					if (!bottom || !bottom.opaque) {
-						faces.push([ Block.BOTTOM, positon, current.getTexture("bottom") ]);
-					}
-					if (!front || !front.opaque) {
-						faces.push([ Block.FRONT, positon, current.getTexture("front") ]);
-					}
-					if (!back || !back.opaque) {
-						faces.push([ Block.BACK, positon, current.getTexture("back") ]);
-					}
-					if (!left || !left.opaque) {
-						faces.push([ Block.LEFT, positon, current.getTexture("left") ]);
-					}
-					if (!right || !right.opaque) {
-						faces.push([ Block.RIGHT, positon, current.getTexture("right") ]);
+					else {
+						const faces = primaryFaces;
+						if (!top || !top.solid || top.transparent) {
+							faces.push([ Block.TOP, positon, current.getTexture("top") ]);
+						}
+						if (!bottom || !bottom.solid || bottom.transparent) {
+							faces.push([ Block.BOTTOM, positon, current.getTexture("bottom") ]);
+						}
+						if (!front || !front.solid || front.transparent) {
+							faces.push([ Block.FRONT, positon, current.getTexture("front") ]);
+						}
+						if (!back || !back.solid || back.transparent) {
+							faces.push([ Block.BACK, positon, current.getTexture("back") ]);
+						}
+						if (!left || !left.solid || left.transparent) {
+							faces.push([ Block.LEFT, positon, current.getTexture("left") ]);
+						}
+						if (!right || !right.solid || right.transparent) {
+							faces.push([ Block.RIGHT, positon, current.getTexture("right") ]);
+						}
 					}
 				}
 			}
-
 		}
 
+		this.generateEntity(primaryFaces, this.entity);
+		this.generateEntity(secondaryFaces, this.secondaryEntity);
+		// console.timeEnd	("render");
+	}
+
+	generateEntity (faces, entity) {
 		const length = faces.length;
 		const count = length * 4;
 		const vertexArray = new Float32Array(count * 3);
@@ -225,12 +304,11 @@ export class Chunk {
 			i += 4;
 		}
 
-		this.entity.setVertexBuffer(vertexArray);
-		this.entity.setTextureBuffer(textureArray);
-		this.entity.setIndexBuffer(indexArray);
-
-		// console.timeEnd	("render");
+		entity.setVertexBuffer(vertexArray);
+		entity.setTextureBuffer(textureArray);
+		entity.setIndexBuffer(indexArray);
 	}
+
 	save () {
 		const length = this.area * this.height;
 		const data  = new Uint16Array(length);
@@ -252,6 +330,5 @@ export class Chunk {
 				this.elements[y][n] = block.instance();
 			}
 		}
-		this.shouldRender = true;
 	}
 }

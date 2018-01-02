@@ -4,20 +4,25 @@ import { getTextureCoords, createAtlas } from "./loadTexture.js";
 const register = new Map();
 
 export class Block {
-	constructor (id, name, opaque) {
+	constructor (id, name, solid, transparent) {
 		this.id = id;
 		this.name = name;
-		this.opaque = opaque;
+		this.solid = solid;
+		this.transparent = transparent;
 		this.textures = {
-			top: getTextureCoords("default"),
-			bottom: getTextureCoords("default"),
-			left: getTextureCoords("default"),
-			right: getTextureCoords("default"),
-			front: getTextureCoords("default"),
-			back: getTextureCoords("default")
+			top: null,
+			bottom: null,
+			left: null,
+			right: null,
+			front: null,
+			back: null
 		};
 
 		register.set(id, this);
+	}
+	hasTexture () {
+		const t = this.textures;
+		return !!(t.top || t.bottom || t.left || t.right || t.back || t.front);
 	}
 	setAllTextures (src) {
 		const coords = getTextureCoords(src);
@@ -64,7 +69,8 @@ export class Block {
 			const {
 				id,
 				name,
-				opaque,
+				solid,
+				transparent = false,
 				texture,
 				side = texture,
 				front = side,
@@ -75,16 +81,22 @@ export class Block {
 				bottom = top
 			} = def;
 
-			if (opaque && !(top && bottom && left && right && front && back))
+			if (solid && !(top && bottom && left && right && front && back))
 				throw new Error("Undefined texture for block");
 
-			const block = new Block(id, name, opaque);
-			setTexture(block, "top", top);
-			setTexture(block, "bottom", bottom);
-			setTexture(block, "left", left);
-			setTexture(block, "right", right);
-			setTexture(block, "front", front);
-			setTexture(block, "back", back);
+			const block = new Block(id, name, solid, transparent);
+			if (top)
+				setTexture(block, "top", top);
+			if (bottom)
+				setTexture(block, "bottom", bottom);
+			if (left)
+				setTexture(block, "left", left);
+			if (right)
+				setTexture(block, "right", right);
+			if (front)
+				setTexture(block, "front", front);
+			if (back)
+				setTexture(block, "back", back);
 		}
 
 		const atlas = await createAtlas(gl, textures, 32);

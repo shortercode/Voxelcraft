@@ -2,24 +2,24 @@
 	{
 		"id": 1,
 		"name": "air",
-		"opaque": false
+		"solid": false
 	},
 	{
 		"id": 2,
 		"name": "dirt",
-		"opaque": true,
+		"solid": true,
 		"texture": "dirt"
 	},
 	{
 		"id": 3,
 		"name": "stone",
-		"opaque": true,
+		"solid": true,
 		"texture": "stone"
 	},
 	{
 		"id": 4,
 		"name": "oak",
-		"opaque": true,
+		"solid": true,
 		"top": "oak_top",
 		"side": "oak_side",
 		"bottom": "oak_top"
@@ -27,9 +27,22 @@
 	{
 		"id": 5,
 		"name": "grass",
-		"opaque": true,
+		"solid": true,
 		"top": "grass_top",
 		"side": "grass_side",
 		"bottom": "dirt"
+	},
+	{
+		"id": 6,
+		"name": "water",
+		"solid": true,
+		"texture": "water",
+		"transparent": true
+	},
+	{
+		"id": 7,
+		"name": "sand",
+		"solid": true,
+		"texture": "sand"
 	}
 ]
