@@ -60,7 +60,7 @@ export async function createAtlas (gl, images, texSize) {
 	canvas.width = size;
 	canvas.height = size;
 
-	ctx.fillStyle = "black";
+	ctx.fillStyle = "rgba(0, 0, 0, 0)";
 	ctx.fillRect(0, 0, size, size);
 
 	for (let x = 0, i = 0; x < n; x++) {
