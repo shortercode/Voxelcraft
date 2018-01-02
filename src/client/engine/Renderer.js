@@ -26,9 +26,9 @@ export class Renderer {
 		gl.enable(gl.CULL_FACE);
 		gl.cullFace(gl.BACK);
 
-		// gl.enable(gl.BLEND);
-		// //gl.blendEquation( gl.FUNC_ADD );
-		// gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
+		gl.enable(gl.BLEND);
+		gl.blendEquation( gl.FUNC_ADD );
+		gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
 	}
 	createCamera (aspect, fov, near, far) {
 		return new Camera (aspect, fov, near, far);
