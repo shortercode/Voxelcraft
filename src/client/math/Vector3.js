@@ -111,6 +111,15 @@ export class Vector3 {
 
 		return this;
 	}
+	dot2 ({ x, y }) {
+		return this.x * x + this.y * y;
+	}
+	dot ({x, y, z}) {
+		return this.x * x + this.y * y + this.z * z;
+	}
+	equals ({x, y, z}) {
+		return this.x === x && this.y === y && this.z === z;  
+	}
 }
 
 Vector3.UP = new Vector3(0, 1, 0);
