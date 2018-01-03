@@ -44,5 +44,13 @@
 		"name": "sand",
 		"solid": true,
 		"texture": "sand"
+	},
+	{
+		"id": 8,
+		"name": "leaves_oak",
+		"solid": true,
+		"texture": "leaves_oak",
+		"individual": true,
+		"transparent": true
 	}
 ]
