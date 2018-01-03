@@ -30,30 +30,10 @@ class Game extends Dispatcher {
 		this.renderer.setShader(this.shader);
 
 		(async () => {
-			// const atlas = await createAtlas(this.renderer.context, [
-			// 	"test_front",
-			// 	"test_back",
-			// 	"test_left",
-			// 	"test_right",
-			// 	"test_bottom",
-			// 	"test_top"
-			// ], 128);
 
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
-			this.chunkManager = new ChunkManager(this, 16, 100, 14);
-
-			// const dirt = new Block(0, true);
-			// //dirt.setAllTextures("stone");
-			// dirt.setTexture("front", "test_front");
-			// dirt.setTexture("back", "test_back");
-			// dirt.setTexture("left", "test_left");
-			// dirt.setTexture("right", "test_right");
-			// dirt.setTexture("bottom", "test_bottom");
-			// dirt.setTexture("top", "test_top");
-			//const chunk = new Chunk(this.renderer.context, 16, 100, 2);
-
+			this.chunkManager = new ChunkManager(this, 16, 100, 10);
 			this.renderer.setAtlas(atlas);
-			//this.scene.add(chunk.entity);
 
 			let time = performance.now();
 			const tick = () => {
@@ -69,8 +49,6 @@ class Game extends Dispatcher {
 			this.camera.move({y: -105, z: 5, x: 5});
 
 			document.body.appendChild(this.renderer.element);
-
-			//this.renderer.element.requestPointerLock();
 		})();
 	}
 	getCameraPosition () {
