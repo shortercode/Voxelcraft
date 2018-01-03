@@ -1,46 +1,34 @@
 const textureMap = new Map();
 
-// export function loadTexture(gl, src) {
-// 	let texture = textureMap.get(src);
-//
-// 	if (texture)
-// 		return texture;
-//
-// 	texture = createTexture(gl, src);
-// 	textureMap.set(src, texture);
-// 	return texture;
-// }
-//
-// async function createTexture (gl, src) {
-// 	const response = await fetch(src);
-// 	const blob = await response.blob();
-// 	const bitmap = await createImageBitmap(blob);
-//
-// 	const texture = gl.createTexture();
-// 	const TEX_2D = gl.TEXTURE_2D;
-//
-// 	gl.bindTexture(TEX_2D, texture);
-// 	gl.texImage2D(TEX_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
-// 	gl.texParameteri(TEX_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-// 	gl.texParameteri(TEX_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-// 	gl.generateMipmap(TEX_2D);
-// 	gl.bindTexture(TEX_2D, null);
-//
-// 	return texture;
-// }
-
 export function getTextureCoords (src) {
 	return textureMap.get(src);
 }
 
-async function blendTexture (img, size, color) {
+async function blendTexture (img, texSize, r, g, b) {
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
-	canvas.width = size;
-	canvas.height = size;
-	ctx.globalCompositeOperation = "multiply";
+
+	canvas.width = texSize;
+	canvas.height = texSize;
+
+	r /= 255;
+	g /= 255;
+	b /= 255;
+
 	ctx.drawImage(img, 0, 0);
-	ctx.fillRect(0, 0, size, size);
+	const imageData = ctx.getImageData(0, 0, texSize, texSize);
+	const D = imageData.data;
+	const length = D.length;
+	const n = 1 / 3;
+
+	for (let i = 0; i < length; i += 4) {
+		const l = (D[i] + D[i + 1] + D[i + 2]) * n;
+		D[i] = l * r;
+		D[i + 1] = l * g;
+		D[i + 2] = l * b;
+	}
+
+	ctx.putImageData(imageData, 0, 0);
 
 	return await createImageBitmap(canvas);
 }
@@ -50,7 +38,6 @@ export async function createAtlas (gl, images, texSize) {
 	images = Array.from(images);
 	const bitmaps = await Promise.all(images.map(src => fetchImage(`textures/${src}.png`)));
 	const n = 2 ** Math.ceil(Math.log2(Math.ceil(Math.sqrt(images.length))));
-	// const m = n ** 2;
 	const size = texSize * n;
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
@@ -65,22 +52,22 @@ export async function createAtlas (gl, images, texSize) {
 
 	for (let x = 0, i = 0; x < n; x++) {
 		for (let y = 0; y < n; y++, i++) {
-			const image = bitmaps[i];
+			let image = bitmaps[i];
 			const src = images[i];
 			if (!image)
 				break;
 
-			const shouldBlend = src == "grass_top";
-			const blendColor = "#87ba45";
+			if (src == "grass_top") {
+				image = await blendTexture(image, texSize, 0x87, 0xba, 0x45);
+				//blend(ctx, texSize, x, y, "#87ba45")
+			}
+			else if (src == "leaves_oak")
+			{
+				image = await blendTexture(image, texSize, 0x87, 0xba, 0x45);
+				//blend(ctx, texSize, x, y, "#87ba45")
+			}
 
 			ctx.drawImage(image, x * texSize, y * texSize);
-
-			if (shouldBlend) {
-				ctx.globalCompositeOperation = "multiply";
-				ctx.fillStyle = blendColor;
-				ctx.fillRect(x * texSize, y * texSize, texSize, texSize);
-				ctx.globalCompositeOperation = "source-over";
-			}
 
 			const x1 = x * ln;
 			const y1 = y * ln;
