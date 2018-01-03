@@ -31,7 +31,7 @@ export class Camera {
 	}
 	update () {
 		if (this.shouldUpdate) {
-			this.rotationMatrix.identity().positon(this.position);
+			this.rotationMatrix.identity().position(this.position);
 			this.matrix.rotate(this.rotation);
 			this.matrix.multiply(this.rotationMatrix);
 			//this.matrix.multiply(this.perspective);
