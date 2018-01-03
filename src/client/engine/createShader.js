@@ -56,7 +56,8 @@ export function createShader (gl, fragmentSource, vertexSource, attributes, unif
 export function getAttributes () {
 	return [
 		"vertexBuffer",
-		"textureBuffer"
+		"textureBuffer",
+		"normalBuffer"
 	];
 }
 
@@ -65,18 +66,21 @@ export function getUniforms () {
 		"camera",
 		"entity",
 		"texture",
-		"perspective"
+		"perspective",
+		"lightDirection"
 	];
 }
 
 export function getFragmentSource () {
 	return `
 		varying highp vec2 texturePosition;
+		varying highp vec3 light;
 		uniform sampler2D texture;
 
 		void main(void) {
+
 			highp vec4 texelColor = texture2D(texture, vec2(texturePosition.s, texturePosition.t));
-			gl_FragColor = vec4(texelColor.rgb * 1.0, texelColor.a);
+			gl_FragColor = vec4(texelColor.rgb * light, texelColor.a);
 		}
 	`;
 }
@@ -84,17 +88,30 @@ export function getFragmentSource () {
 export function getVertexSource () {
 	return `
 		attribute vec3 vertexBuffer;
+		attribute vec3 normalBuffer;
 		attribute vec2 textureBuffer;
 
 		uniform mat4 camera;
 		uniform mat4 entity;
 		uniform mat4 perspective;
+		uniform vec3 lightDirection;
 
 		varying highp vec2 texturePosition;
+		varying highp vec3 light;
 
 		void main(void) {
 			gl_Position = perspective * camera * entity * vec4(vertexBuffer, 1.0);
 			texturePosition = textureBuffer;
+
+			// Apply lighting effect
+
+      highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+      highp vec3 directionalLightColor = vec3(1, 1, 1);
+
+      highp vec4 transformedNormal = vec4(normalBuffer, 1.0);
+
+      highp float directional = max(dot(transformedNormal.xyz, lightDirection), 0.0);
+      light = ambientLight + (directionalLightColor * directional);
 		}
 	`;
 }
