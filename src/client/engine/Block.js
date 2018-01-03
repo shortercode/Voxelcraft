@@ -71,6 +71,7 @@ export class Block {
 				name,
 				solid,
 				transparent = false,
+				individual = false,
 				texture,
 				side = texture,
 				front = side,
@@ -85,6 +86,8 @@ export class Block {
 				throw new Error("Undefined texture for block");
 
 			const block = new Block(id, name, solid, transparent);
+
+			block.individual = individual;
 			if (top)
 				setTexture(block, "top", top);
 			if (bottom)
@@ -143,3 +146,41 @@ Block.LEFT = [
 	new Vector3(0, 0, 0),
 	new Vector3(0, 0, 1),
 ];
+Block.NORMAL = {
+	TOP: [
+		Vector3.UP,
+		Vector3.UP,
+		Vector3.UP,
+		Vector3.UP
+	],
+	BOTTOM: [
+		Vector3.DOWN,
+		Vector3.DOWN,
+		Vector3.DOWN,
+		Vector3.DOWN
+	],
+	LEFT: [
+		Vector3.LEFT,
+		Vector3.LEFT,
+		Vector3.LEFT,
+		Vector3.LEFT
+	],
+	RIGHT: [
+		Vector3.RIGHT,
+		Vector3.RIGHT,
+		Vector3.RIGHT,
+		Vector3.RIGHT
+	],
+	FRONT:[
+		Vector3.FORWARD,
+		Vector3.FORWARD,
+		Vector3.FORWARD,
+		Vector3.FORWARD
+	],
+	BACK: [
+		Vector3.BACKWARD,
+		Vector3.BACKWARD,
+		Vector3.BACKWARD,
+		Vector3.BACKWARD
+	]
+};
