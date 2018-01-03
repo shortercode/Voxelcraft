@@ -3,10 +3,14 @@ import { Scene } from "./Scene.js";
 import { Entity } from "./Entity.js";
 import { Dispatcher } from "../events/Dispatcher.js";
 import { createShader, getFragmentSource, getVertexSource, getAttributes, getUniforms } from "./createShader.js";
+import { Vector3 } from "../math/Vector3.js";
+
+const light = new Vector3(0.5, 0.7, 1).normalise();
 
 export class Renderer {
 	constructor () {
 		this.element = document.createElement('canvas');
+		this.element.style.zIndex = 0;
 		this.context = this.element.getContext("webgl2", { premultipliedAlpha: true, antialias: false } );
 		this.pixelRatio = devicePixelRatio;
 		this.camera = null;
@@ -14,6 +18,7 @@ export class Renderer {
 		this.shader = null;
 		this.width = 0;
 		this.height = 0;
+		this.depthSort = true;
 
 		const gl = this.context;
 
@@ -94,31 +99,49 @@ export class Renderer {
 		const cameraMatrix = this.camera.update();
 		gl.uniformMatrix4fv(shader.uniforms.camera, false, cameraMatrix.elements);
 		gl.uniformMatrix4fv(shader.uniforms.perspective, false, this.camera.perspective.elements);
+		gl.uniform3fv(shader.uniforms.lightDirection, [light.x, light.y, light.z]);
 
 		let texture = null;
 		let textureBuffer = null;
 		let vertexBuffer = null;
 
-		for (const entity of this.scene.entities()) {
+		let entities = Array.from(this.scene.entities());
+
+		if (this.depthSort) {
+			entities = entities.sort((a, b) => {
+				if (a.transparent !== b.transparent) {
+					// draw opaque entities before transparent
+					return a.transparent ? 1 : -1;
+				}
+				else {
+					if (a.transparent) {
+						// sort transparent object back to front
+						return a.getDepth(cameraMatrix) - b.getDepth(cameraMatrix);
+					}
+					else {
+						// sort opaque object front to back
+						return b.getDepth(cameraMatrix) - a.getDepth(cameraMatrix);
+					}
+				}
+			})
+		}
+
+		for (const entity of entities) {
 			const entityMatrix = entity.update();
 			gl.uniformMatrix4fv(shader.uniforms.entity, false, entityMatrix.elements);
 
-			if (textureBuffer != entity.textureBuffer)
-			{
-				// texture buffer
-				gl.bindBuffer(gl.ARRAY_BUFFER, entity.textureBuffer);
-				gl.vertexAttribPointer(shader.attributes.textureBuffer, 2, gl.FLOAT, false, 0, 0);
-				textureBuffer = entity.textureBuffer;
-			}
+			// texture buffer
+			gl.bindBuffer(gl.ARRAY_BUFFER, entity.textureBuffer);
+			gl.vertexAttribPointer(shader.attributes.textureBuffer, 2, gl.FLOAT, false, 0, 0);
+			textureBuffer = entity.textureBuffer;
 
-			if (vertexBuffer != entity.vertexBuffer)
-			{
-				// vertex buffer
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
-				gl.bindBuffer(gl.ARRAY_BUFFER, entity.vertexBuffer);
-				gl.vertexAttribPointer(shader.attributes.vertexBuffer, 3, gl.FLOAT, false, 0, 0);
-				vertexBuffer = entity.vertexBuffer;
-			}
+			// vertex buffer
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, entity.indexBuffer);
+			gl.bindBuffer(gl.ARRAY_BUFFER, entity.vertexBuffer);
+			gl.vertexAttribPointer(shader.attributes.vertexBuffer, 3, gl.FLOAT, false, 0, 0);
+			gl.bindBuffer(gl.ARRAY_BUFFER, entity.normalBuffer);
+			gl.vertexAttribPointer(shader.attributes.normalBuffer, 3, gl.FLOAT, false, 0, 0);
+			vertexBuffer = entity.vertexBuffer;
             //
 			// if (texture != this.atl)
 			// {
