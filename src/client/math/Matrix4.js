@@ -190,7 +190,7 @@ export class Matrix4 {
 		return this;
 	}
 
-	positon ({x = 0, y = 0, z = 0}) {
+	position ({x = 0, y = 0, z = 0}) {
 		this.elements[12] = x;
 		this.elements[13] = y;
 		this.elements[14] = z;
