@@ -73,27 +73,27 @@ export class FirstPersonControls {
 
 		// if (!originBlock || !originBlock.opaque)
 		// {
-			let n = 1000;
+			//let n = 1000;
 
 			// 	console.log("ray");
-			raycast (start, finish, (x, y, z, px, py, pz) => {
-
-				n--;
-				if (n < 0) {
-					throw new Error("Excessive ray trace");
-				}
-
-				const block = this.game.chunkManager.getBlockAt(x, y, z);
-				// console.log(x, y, z, block);
-		    if (block && block.opaque) {
-					//console.log("snap");
-					finish.x = px;
-					finish.y = py;
-					finish.z = pz;
-					return true;
-		        // stop
-		    }
-			});
+			// raycast (start, finish, (x, y, z, px, py, pz) => {
+      //
+			// 	n--;
+			// 	if (n < 0) {
+			// 		throw new Error("Excessive ray trace");
+			// 	}
+      //
+			// 	const block = this.game.chunkManager.getBlockAt(x, y, z);
+			// 	// console.log(x, y, z, block);
+		  //   if (block && block.opaque) {
+			// 		//console.log("snap");
+			// 		finish.x = px;
+			// 		finish.y = py;
+			// 		finish.z = pz;
+			// 		return true;
+		  //       // stop
+		  //   }
+			// });
 		//}
 
 		this.camera.setPosition(finish);
@@ -104,16 +104,21 @@ export class FirstPersonControls {
 
 		// // full: F = 0.5 * fluidDensity * velocity ** 2 * dragCoefficient * area
 		// // simplified: F = velocity ** 2 * drag
-		const magnitude = velocity.length() ** 2;
-		const deceleration = velocity.clone().normalise().multiply(-drag * magnitude);
+		const magnitude = velocity.length();
 
-		acceleration.add(deceleration);//.multiply(16);
-		velocity.add(acceleration);
+		// console.log(magnitude);
+
+		if (magnitude < 0.2 && acceleration.lengthSq() == 0) {
+			velocity.set(0, 0, 0);
+		} else {
+			const deceleration = velocity.clone().normalise().multiply(-drag * magnitude * magnitude);
+			acceleration.add(deceleration);//.multiply(16);
+			velocity.add(acceleration);
+		}
 
 		if (velocity.isNaN())
 			throw new Error("Invalid velocity");
-
-
+		
 	}
 	onPointerLockChange (e) {
 		if (document.pointerLockElement === this.canvas) {
