@@ -14,8 +14,34 @@ export class Entity {
 		this.vertexBuffer = gl.createBuffer();
 		this.indexBuffer = gl.createBuffer();
 		this.textureBuffer = gl.createBuffer();
+		this.normalBuffer = gl.createBuffer();
 		this.texture = null;
 		this.shouldUpdate = true;
+		this.transparent = false;
+	}
+	getDepth (cameraMatrix) {
+		let x = 0;
+		let y = 0;
+		let z = 0;
+
+		if (this.rotation.x != 0 || this.rotation.y != 0 || this.rotation.z != 0 || this.rotation.w != 1) {
+			const e = this.matrix.elements;
+			const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
+
+			x = ( e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] ) * w;
+			y = ( e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] ) * w;
+			z = ( e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] ) * w;
+		}
+		else {
+			x = this.position.x;
+			y = this.position.y;
+			z = this.position.z;
+		}
+
+		const e = cameraMatrix.elements;
+		const w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] );
+
+		return ( e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] ) * w;
 	}
 	release () {
 		const gl = this.context;
@@ -23,6 +49,7 @@ export class Entity {
 		gl.deleteBuffer(this.vertexBuffer);
 		gl.deleteBuffer(this.indexBuffer);
 		gl.deleteBuffer(this.textureBuffer);
+		gl.deleteBuffer(this.normalBuffer);
 
 		this.context = null;
 		this.position = null;
@@ -33,6 +60,7 @@ export class Entity {
 		this.vertexBuffer = null;
 		this.indexBuffer = null;
 		this.textureBuffer = null;
+		this.normalBuffer = null;
 		this.texture = null;
 		this.shouldUpdate = true;
 	}
@@ -47,6 +75,7 @@ export class Entity {
 		clone.vertexBuffer = this.vertexBuffer;
 		clone.indexBuffer = this.indexBuffer;
 		clone.textureBuffer = this.textureBuffer;
+		clone.normalBuffer = this.normalBuffer;
 
 		clone.texture = this.texture;
 		return clone;
@@ -74,6 +103,11 @@ export class Entity {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, locations, dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
 	}
+	setNormalBuffer (normals, dynamic = false) {
+		const gl = this.context;
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, normals, dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
+	}
 	setTexture (t) {
 		this.texture = t;
 	}
@@ -86,93 +120,5 @@ export class Entity {
 		this.position.y += y;
 		this.position.z += z;
 		this.shouldUpdate = true;
-	}
-	makeCube (x, y, z, front, back = front, top = front, bottom = front, right = front, left = front) {
-		x *= 0.5;
-		y *= 0.5;
-		z *= 0.5;
-
-		this.setVertexBuffer(new Float32Array([
-			// front
-			-x, -y, z,
-			x, -y, z,
-			x, y, z,
-			-x, y, z,
-			// back
-			-x, -y, -z,
-			-x, y, -z,
-			x, y, -z,
-			x, -y, -z,
-			// top
-			-x, y, -z,
-			-x, y, z,
-			x, y, z,
-			x, y, -z,
-			// bottom
-			-x, -y, -z,
-			x, -y, -z,
-			x, -y, z,
-			-x, -y, z,
-			// right
-			x, -y, -z,
-			x, y, -z,
-			x, y, z,
-			x, -y, z,
-			// left
-			-x, -y, -z,
-			-x, -y, z,
-			-x, y, z,
-			-x, y, -z
-		]));
-
-		front = getTextureCoords(front);
-		back = getTextureCoords(back);
-		top = getTextureCoords(top);
-		bottom = getTextureCoords(bottom);
-		right = getTextureCoords(right);
-		left = getTextureCoords(left);
-
-		this.setTextureBuffer(new Float32Array([
-
-			front[4], front[5],
-			front[6], front[7],
-			front[0], front[1],
-			front[2], front[3],
-
-			back[6], back[7],
-			back[0], back[1],
-			back[2], back[3],
-			back[4], back[5],
-
-			top[0], top[1],
-			top[2], top[3],
-			top[4], top[5],
-			top[6], top[7],
-
-			bottom[0], bottom[1],
-			bottom[2], bottom[3],
-			bottom[4], bottom[5],
-			bottom[6], bottom[7],
-
-			right[6], right[7],
-			right[0], right[1],
-			right[2], right[3],
-			right[4], right[5],
-
-			left[4], left[5],
-			left[6], left[7],
-			left[0], left[1],
-			left[2], left[3],
-
-		]));
-
-		this.setIndexBuffer(new Uint16Array([
-				0, 1, 2, 0, 2, 3,
-				4, 5, 6, 4, 6, 7,
-				8, 9, 10, 8, 10, 11,
-				12, 13, 14, 12, 14, 15,
-				16, 17, 18, 16, 18, 19,
-				20, 21, 22, 20, 22, 23
-		]));
 	}
 }
