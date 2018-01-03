@@ -43,6 +43,7 @@ export class Chunk {
 
 		this.entity = new Entity(gl);
 		this.secondaryEntity = new Entity(gl);
+		this.secondaryEntity.transparent = true;
 	}
 	release () {
 		this.entity.release();
@@ -64,12 +65,31 @@ export class Chunk {
 		const heightMap = [];
 		const treeMap = [];
 		const biomeMap = [];
-
-		const treeBaseline = 0.90;
+		const leafMap = new Array(size * size);
+		const treeBaseline = 0.95;
 		const waterHeight = 50;
 
-		for (let x = 0; x < size; x++) {
-			for (let z = 0; z < size; z++) {
+		const addLeaves = (xn, yn, h, r) => {
+			const rr = r ** 2;
+			const low = h - r;
+			const high = h + r;
+			for (let y = low; y < high; y++) {
+				for (let x = 0, i = 0; x < size; x++) {
+					for (let z = 0; z < size; z++, i++) {
+						const d = ((xn - x) ** 2) + ((yn - z) ** 2) + ((h - y) ** 2);
+						if (d < rr) {
+							let arr = leafMap[i];
+							if (!arr)
+								arr = leafMap[i] = new Set();
+							arr.add(y);
+						}
+					}
+				}
+			}
+		};
+
+		for (let x = 0, i = 0; x < size; x++) {
+			for (let z = 0; z < size; z++, i++) {
 				const xn = position.x + z;
 				const yn = position.z + x;
 				const y = randomHeight(xn, yn, 0.01) ** 1.0;
@@ -79,8 +99,10 @@ export class Chunk {
 				const biome = biomeValue(xn, yn, 0.01);
 				heightMap.push(blockHeight);
 
-				if (biome > 0.2 && treeHeight > treeBaseline) {
-					treeMap.push(blockHeight + 3 + 60 * (treeHeight - treeBaseline));
+				if (biome > 0.4 && treeHeight > treeBaseline && blockHeight > waterHeight) {
+					const height = Math.round(blockHeight + 3 + 60 * (treeHeight - treeBaseline));
+					addLeaves(x, z, height, 4);
+					treeMap.push(height);
 				}
 				else {
 					treeMap.push(blockHeight);
@@ -95,17 +117,24 @@ export class Chunk {
 		const oak = Block.get(4);
 		const water = Block.get(6);
 		const sand = Block.get(7);
+		const leaf = Block.get(8);
 
 		for (let i = 0; i < height; i++) {
 			const plane = this.elements[i];
 			for (let ii = 0; ii < this.area; ii++) {
 				const ground = heightMap[ii];
 				const tree = treeMap[ii];
+				const leafset = leafMap[ii];
 				const underWater = ground <= waterHeight;
 
 				if (underWater) {
 					if (i > waterHeight) {
-						plane[ii] = air.instance();
+						if (leafset && leafset.has(i)) {
+							plane[ii] = leaf.instance();
+						}
+						else {
+							plane[ii] = air.instance();
+						}
 					}
 					else if (i > ground) {
 						plane[ii] = water.instance();
@@ -123,6 +152,9 @@ export class Chunk {
 					if (i > ground) {
 						if (i <= tree) {
 							plane[ii] = oak.instance();
+						}
+						else if (leafset && leafset.has(i)) {
+							plane[ii] = leaf.instance();
 						}
 						else {
 							plane[ii] = air.instance();
@@ -183,6 +215,9 @@ export class Chunk {
 		for (let i = 0; i < this.height; i++) {
 			for (let x = 0; x < this.width; x++) {
 				for (let y = 0; y < this.width; y++) {
+
+
+
 					const current = getBlock(i, x, y);
 					const top = getBlock(i + 1, x, y);
 					const bottom = getBlock(i - 1, x, y);
@@ -194,49 +229,62 @@ export class Chunk {
 					if (!current.solid)
 						continue;
 
-					const positon = [ x, i, y ];
+					const position = [ x, i, y ];
+
 					//const faces = primaryFaces;
-					if (current.transparent) {
+					if (current.individual) {
+						const faces = secondaryFaces;
+						faces.push(
+							[ Block.TOP, position, current.getTexture("top"), Block.NORMAL.TOP ],
+							[ Block.BOTTOM, position, current.getTexture("bottom"), Block.NORMAL.BOTTOM ],
+							[ Block.FRONT, position, current.getTexture("front"), Block.NORMAL.FRONT ],
+							[ Block.BACK, position, current.getTexture("back"), Block.NORMAL.BACK ],
+							[ Block.LEFT, position, current.getTexture("left"), Block.NORMAL.LEFT ],
+							[ Block.RIGHT, position, current.getTexture("right"), Block.NORMAL.RIGHT ],
+						);
+
+					}
+					else if (current.transparent) {
 						const faces = secondaryFaces;
 
 						if (!top || !top.solid) {
-							faces.push([ Block.TOP, positon, current.getTexture("top") ]);
+							faces.push([ Block.TOP, position, current.getTexture("top"), Block.NORMAL.TOP ]);
 						}
 						if (!bottom || !bottom.solid) {
-							faces.push([ Block.BOTTOM, positon, current.getTexture("bottom") ]);
+							faces.push([ Block.BOTTOM, position, current.getTexture("bottom"), Block.NORMAL.BOTTOM ]);
 						}
 						if (!front || !front.solid) {
-							faces.push([ Block.FRONT, positon, current.getTexture("front") ]);
+							faces.push([ Block.FRONT, position, current.getTexture("front"), Block.NORMAL.FRONT ]);
 						}
 						if (!back || !back.solid) {
-							faces.push([ Block.BACK, positon, current.getTexture("back") ]);
+							faces.push([ Block.BACK, position, current.getTexture("back"), Block.NORMAL.BACK ]);
 						}
 						if (!left || !left.solid) {
-							faces.push([ Block.LEFT, positon, current.getTexture("left") ]);
+							faces.push([ Block.LEFT, position, current.getTexture("left"), Block.NORMAL.LEFT ]);
 						}
 						if (!right || !right.solid) {
-							faces.push([ Block.RIGHT, positon, current.getTexture("right") ]);
+							faces.push([ Block.RIGHT, position, current.getTexture("right"), Block.NORMAL.RIGHT ]);
 						}
 					}
 					else {
 						const faces = primaryFaces;
 						if (!top || !top.solid || top.transparent) {
-							faces.push([ Block.TOP, positon, current.getTexture("top") ]);
+							faces.push([ Block.TOP, position, current.getTexture("top"), Block.NORMAL.TOP ]);
 						}
 						if (!bottom || !bottom.solid || bottom.transparent) {
-							faces.push([ Block.BOTTOM, positon, current.getTexture("bottom") ]);
+							faces.push([ Block.BOTTOM, position, current.getTexture("bottom"), Block.NORMAL.BOTTOM ]);
 						}
 						if (!front || !front.solid || front.transparent) {
-							faces.push([ Block.FRONT, positon, current.getTexture("front") ]);
+							faces.push([ Block.FRONT, position, current.getTexture("front"), Block.NORMAL.FRONT ]);
 						}
 						if (!back || !back.solid || back.transparent) {
-							faces.push([ Block.BACK, positon, current.getTexture("back") ]);
+							faces.push([ Block.BACK, position, current.getTexture("back"), Block.NORMAL.BACK ]);
 						}
 						if (!left || !left.solid || left.transparent) {
-							faces.push([ Block.LEFT, positon, current.getTexture("left") ]);
+							faces.push([ Block.LEFT, position, current.getTexture("left"), Block.NORMAL.LEFT ]);
 						}
 						if (!right || !right.solid || right.transparent) {
-							faces.push([ Block.RIGHT, positon, current.getTexture("right") ]);
+							faces.push([ Block.RIGHT, position, current.getTexture("right"), Block.NORMAL.RIGHT ]);
 						}
 					}
 				}
@@ -252,11 +300,13 @@ export class Chunk {
 		const length = faces.length;
 		const count = length * 4;
 		const vertexArray = new Float32Array(count * 3);
+		const normalArray = new Float32Array(count * 3);
 		const textureArray = new Float32Array(count * 2);
 		const indexArray = new Uint16Array(length * 6);
 
 		let i = 0;
 		let vi = 0;
+		let ni = 0;
 		let ti = 0;
 		let ii = 0;
 
@@ -265,14 +315,18 @@ export class Chunk {
 			const verticies = face[0];
 			const position = face[1];
 			const texture = face[2];
+			const normals = face[3];
 
 			vertexArray[vi++] = verticies[0].x + position[0];
 			vertexArray[vi++] = verticies[0].y + position[1];
 			vertexArray[vi++] = verticies[0].z + position[2];
 
+
+
 			vertexArray[vi++] = verticies[1].x + position[0];
 			vertexArray[vi++] = verticies[1].y + position[1];
 			vertexArray[vi++] = verticies[1].z + position[2];
+
 
 			vertexArray[vi++] = verticies[2].x + position[0];
 			vertexArray[vi++] = verticies[2].y + position[1];
@@ -281,6 +335,22 @@ export class Chunk {
 			vertexArray[vi++] = verticies[3].x + position[0];
 			vertexArray[vi++] = verticies[3].y + position[1];
 			vertexArray[vi++] = verticies[3].z + position[2];
+
+			normalArray[ni++] = normals[0].x;
+			normalArray[ni++] = normals[0].y;
+			normalArray[ni++] = normals[0].z;
+
+			normalArray[ni++] = normals[1].x;
+			normalArray[ni++] = normals[1].y;
+			normalArray[ni++] = normals[1].z;
+
+			normalArray[ni++] = normals[2].x;
+			normalArray[ni++] = normals[2].y;
+			normalArray[ni++] = normals[2].z;
+
+			normalArray[ni++] = normals[3].x;
+			normalArray[ni++] = normals[3].y;
+			normalArray[ni++] = normals[3].z;
 
 			textureArray[ti++] = texture[0];
 			textureArray[ti++] = texture[1];
@@ -304,6 +374,7 @@ export class Chunk {
 			i += 4;
 		}
 
+		entity.setNormalBuffer(normalArray);
 		entity.setVertexBuffer(vertexArray);
 		entity.setTextureBuffer(textureArray);
 		entity.setIndexBuffer(indexArray);
