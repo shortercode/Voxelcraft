@@ -2,7 +2,6 @@ import { Renderer } from "./engine/Renderer.js";
 import { FirstPersonControls } from "./engine/FirstPersonControls.js";
 import { Stat } from "./engine/Stat.js";
 import { Dispatcher } from "./events/Dispatcher.js";
-import { createAtlas } from "./engine/loadTexture.js";
 import { ChunkManager } from "./engine/ChunkManager.js";
 import { Block } from "./engine/Block.js";
 
@@ -32,7 +31,7 @@ class Game extends Dispatcher {
 		(async () => {
 
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
-			this.chunkManager = new ChunkManager(this, 16, 100, 10);
+			this.chunkManager = new ChunkManager(this, 16, 100, 12);
 			this.renderer.setAtlas(atlas);
 
 			let time = performance.now();

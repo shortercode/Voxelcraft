@@ -72,32 +72,37 @@ export function getUniforms () {
 }
 
 export function getFragmentSource () {
-	return `
-		varying highp vec2 texturePosition;
-		varying highp vec3 light;
-		uniform sampler2D texture;
+	return `#version 300 es
+		precision highp float;
+
+		in vec3 texturePosition;
+		in vec3 light;
+		uniform highp sampler2DArray textureSampler;
+
+		out highp vec4 outColor;
 
 		void main(void) {
-
-			highp vec4 texelColor = texture2D(texture, vec2(texturePosition.s, texturePosition.t));
-			gl_FragColor = vec4(texelColor.rgb * light, texelColor.a);
+			highp vec4 texelColor = texture(textureSampler, texturePosition);
+			outColor = vec4(texelColor.rgb * light, texelColor.a);
 		}
 	`;
 }
 
 export function getVertexSource () {
-	return `
-		attribute vec3 vertexBuffer;
-		attribute vec3 normalBuffer;
-		attribute vec2 textureBuffer;
+	return `#version 300 es
+		precision highp float;
+
+		in vec3 vertexBuffer;
+		in vec3 normalBuffer;
+		in vec3 textureBuffer;
 
 		uniform mat4 camera;
 		uniform mat4 entity;
 		uniform mat4 perspective;
 		uniform vec3 lightDirection;
 
-		varying highp vec2 texturePosition;
-		varying highp vec3 light;
+		out highp vec3 texturePosition;
+		out highp vec3 light;
 
 		void main(void) {
 			gl_Position = perspective * camera * entity * vec4(vertexBuffer, 1.0);

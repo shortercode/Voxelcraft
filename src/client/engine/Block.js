@@ -1,5 +1,5 @@
 import { Vector3 } from "../math/Vector3.js";
-import { getTextureCoords, createAtlas } from "./loadTexture.js";
+import { getTextureCoords, create3DTexture } from "./loadTexture.js";
 
 const register = new Map();
 
@@ -102,7 +102,7 @@ export class Block {
 				setTexture(block, "back", back);
 		}
 
-		const atlas = await createAtlas(gl, textures, 32);
+		const atlas = await create3DTexture(gl, textures, 32);
 
 		callbacks.forEach(fn => fn());
 

@@ -66,7 +66,7 @@ export class Renderer {
 		this.atlas = t;
 		const gl = this.context;
 		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, this.atlas);
+		gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.atlas);
 	}
 	setSize (width, height) {
 		const correctedWidth = width * this.pixelRatio;
@@ -132,7 +132,7 @@ export class Renderer {
 
 			// texture buffer
 			gl.bindBuffer(gl.ARRAY_BUFFER, entity.textureBuffer);
-			gl.vertexAttribPointer(shader.attributes.textureBuffer, 2, gl.FLOAT, false, 0, 0);
+			gl.vertexAttribPointer(shader.attributes.textureBuffer, 3, gl.FLOAT, false, 0, 0);
 			textureBuffer = entity.textureBuffer;
 
 			// vertex buffer

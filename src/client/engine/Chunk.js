@@ -6,15 +6,48 @@ import { Noise } from "../math/Noise.js";
 const terrainNoise = new Noise();
 const bioNoise = new Noise(16);
 
-function randomHeight(x, y, freq) {
+function randomHeight(x, y, freq, harmonics) {
 	x = freq * x;
 	y = freq * y;
-	const n = terrainNoise.simplex2(x, y)
-		+ 0.25 * terrainNoise.simplex2(2 * x, 2 * y)
-		+ 0.125 * terrainNoise.simplex2(4 * x, 4 * y);
-		//+ 0.125 * simplex2(x * 8, y  * 8);
+	let n = 0;
+	let m = 1;
+	let d = 1;
+	let t = 0;
+	while (harmonics--) {
+		n += d * terrainNoise.simplex2(m * x, m * y);
+		t += d;
+		m *= 2;
+		d *= 0.5;
+	}
 
-	return n / (1 + 0.5 + 0.25);
+	return n / t;
+}
+
+function FBM (x, y, h = 4, f = 1) {
+	x *= f;
+	y *= f;
+	let n = 0;
+	let m = 1;
+	let d = 1;
+	let t = 0;
+	while (h--) {
+		n += d * terrainNoise.simplex2(m * x, m * y);
+		t += d;
+		m *= 2;
+		d *= 0.5;
+	}
+
+	return n / t;
+}
+
+function domainDistort (x, y) {
+	const xq = FBM(x, y)
+	const yq = FBM(x + 5.2, y + 1.3);
+
+	const xr = FBM(x + 4 * xq + 1.7, y + 4 * yq + 9.2);
+	const yr = FBM(x + 4 * xq + 8.3, y + 4 * yq + 2.8);
+
+	return FBM(x + 4.0 * xr, y + 4.0 * yr);
 }
 
 function biomeValue(x, y, freq) {
@@ -60,8 +93,8 @@ export class Chunk {
 		const position = this.getPosition();
 		const size = this.width;
 		const height = this.height;
-		const baseline = 30;
-		const varience = 70;
+		const baseline = 20;
+		const varience = 80;
 		const heightMap = [];
 		const treeMap = [];
 		const biomeMap = [];
@@ -92,7 +125,7 @@ export class Chunk {
 			for (let z = 0; z < size; z++, i++) {
 				const xn = position.x + z;
 				const yn = position.z + x;
-				const y = randomHeight(xn, yn, 0.01) ** 1.0;
+				const y = domainDistort(xn * 0.001, yn * 0.001); //randomHeight(xn, yn, 0.001, 8);
 
 				const blockHeight = baseline + Math.floor(y * varience);
 				const treeHeight = biomeValue(xn, yn, 1);
@@ -101,7 +134,7 @@ export class Chunk {
 
 				if (biome > 0.4 && treeHeight > treeBaseline && blockHeight > waterHeight) {
 					const height = Math.round(blockHeight + 3 + 60 * (treeHeight - treeBaseline));
-					addLeaves(x, z, height, 4);
+					//addLeaves(x, z, height, 4);
 					treeMap.push(height);
 				}
 				else {
@@ -301,7 +334,7 @@ export class Chunk {
 		const count = length * 4;
 		const vertexArray = new Float32Array(count * 3);
 		const normalArray = new Float32Array(count * 3);
-		const textureArray = new Float32Array(count * 2);
+		const textureArray = new Float32Array(count * 3);
 		const indexArray = new Uint16Array(length * 6);
 
 		let i = 0;
@@ -321,12 +354,9 @@ export class Chunk {
 			vertexArray[vi++] = verticies[0].y + position[1];
 			vertexArray[vi++] = verticies[0].z + position[2];
 
-
-
 			vertexArray[vi++] = verticies[1].x + position[0];
 			vertexArray[vi++] = verticies[1].y + position[1];
 			vertexArray[vi++] = verticies[1].z + position[2];
-
 
 			vertexArray[vi++] = verticies[2].x + position[0];
 			vertexArray[vi++] = verticies[2].y + position[1];
@@ -354,15 +384,19 @@ export class Chunk {
 
 			textureArray[ti++] = texture[0];
 			textureArray[ti++] = texture[1];
-
 			textureArray[ti++] = texture[2];
-			textureArray[ti++] = texture[3];
 
+			textureArray[ti++] = texture[3];
 			textureArray[ti++] = texture[4];
 			textureArray[ti++] = texture[5];
 
 			textureArray[ti++] = texture[6];
 			textureArray[ti++] = texture[7];
+			textureArray[ti++] = texture[8];
+
+			textureArray[ti++] = texture[9];
+			textureArray[ti++] = texture[10];
+			textureArray[ti++] = texture[11];
 
 			indexArray[ii++] = i;
 			indexArray[ii++] = i + 1;
