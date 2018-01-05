@@ -40,6 +40,13 @@ function FBM (x, y, h = 4, f = 1) {
 	return n / t;
 }
 
+function simpleDomainDistort (x, y, h = 4, f = 1) {
+	const xq = FBM(x, y, h, f)
+	const yq = FBM(x + 5.2, y + 1.3, h, f);
+
+	return FBM(x + 4.0 * xq, y + 4.0 * yq, h, f);
+}
+
 function domainDistort (x, y) {
 	const xq = FBM(x, y)
 	const yq = FBM(x + 5.2, y + 1.3);
@@ -125,7 +132,7 @@ export class Chunk {
 			for (let z = 0; z < size; z++, i++) {
 				const xn = position.x + z;
 				const yn = position.z + x;
-				const y = domainDistort(xn * 0.001, yn * 0.001); //randomHeight(xn, yn, 0.001, 8);
+				const y = simpleDomainDistort(xn, yn, 6, 0.001);// domainDistort(xn * 0.0001, yn * 0.0001); //randomHeight(xn, yn, 0.001, 8);
 
 				const blockHeight = baseline + Math.floor(y * varience);
 				const treeHeight = biomeValue(xn, yn, 1);
