@@ -110,13 +110,13 @@ export function getVertexSource () {
 
 			// Apply lighting effect
 
-      highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
-      highp vec3 directionalLightColor = vec3(1, 1, 1);
+      		highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+      		highp vec3 directionalLightColor = vec3(1, 1, 1);
 
-      highp vec4 transformedNormal = vec4(normalBuffer, 1.0);
+      		highp vec4 transformedNormal = vec4(normalBuffer, 1.0);
 
-      highp float directional = max(dot(transformedNormal.xyz, lightDirection), 0.0);
-      light = ambientLight + (directionalLightColor * directional);
+      		highp float directional = max(dot(transformedNormal.xyz, lightDirection), 0.0);
+      		light = ambientLight + (directionalLightColor * directional);
 		}
 	`;
 }
