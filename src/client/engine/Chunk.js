@@ -6,63 +6,6 @@ import { Noise } from "../math/Noise.js";
 const terrainNoise = new Noise();
 const bioNoise = new Noise(16);
 
-function randomHeight(x, y, freq, harmonics) {
-	x = freq * x;
-	y = freq * y;
-	let n = 0;
-	let m = 1;
-	let d = 1;
-	let t = 0;
-	while (harmonics--) {
-		n += d * terrainNoise.simplex2(m * x, m * y);
-		t += d;
-		m *= 2;
-		d *= 0.5;
-	}
-
-	return n / t;
-}
-
-function FBM (x, y, h = 4, f = 1) {
-	x *= f;
-	y *= f;
-	let n = 0;
-	let m = 1;
-	let d = 1;
-	let t = 0;
-	while (h--) {
-		n += d * terrainNoise.simplex2(m * x, m * y);
-		t += d;
-		m *= 2;
-		d *= 0.5;
-	}
-
-	return n / t;
-}
-
-function simpleDomainDistort (x, y, h = 4, f = 1) {
-	const xq = FBM(x, y, h, f)
-	const yq = FBM(x + 5.2, y + 1.3, h, f);
-
-	return FBM(x + 4.0 * xq, y + 4.0 * yq, h, f);
-}
-
-function domainDistort (x, y) {
-	const xq = FBM(x, y)
-	const yq = FBM(x + 5.2, y + 1.3);
-
-	const xr = FBM(x + 4 * xq + 1.7, y + 4 * yq + 9.2);
-	const yr = FBM(x + 4 * xq + 8.3, y + 4 * yq + 2.8);
-
-	return FBM(x + 4.0 * xr, y + 4.0 * yr);
-}
-
-function biomeValue(x, y, freq) {
-	x = freq * x;
-	y = freq * y;
-	return bioNoise.simplex2(x, y);
-}
-
 export class Chunk {
 	constructor (gl, width, height, manager) {
 		this.manager = manager;
@@ -108,6 +51,19 @@ export class Chunk {
 		const leafMap = new Array(size * size);
 		const treeBaseline = 0.95;
 		const waterHeight = 50;
+		const kx = position.x / this.width;
+		const kz = position.z / this.width;
+
+		const currentChunk = this.manager.createChunkLeafData(kx, kz);
+		const leftChunk = this.manager.createChunkLeafData(kx - 1, kz);
+		const rightChunk = this.manager.createChunkLeafData(kx + 1, kz);
+		const frontChunk = this.manager.createChunkLeafData(kx, kz + 1);
+		const backChunk = this.manager.createChunkLeafData(kx, kz - 1);
+
+		const frontleftChunk = this.manager.createChunkLeafData(kx - 1, kz + 1);
+		const backrightChunk = this.manager.createChunkLeafData(kx + 1, kz - 1);
+		const frontrightChunk = this.manager.createChunkLeafData(kx + 1, kz + 1);
+		const backleftChunk = this.manager.createChunkLeafData(kx - 1, kz - 1);
 
 		const addLeaves = (xn, yn, h, r) => {
 			const rr = r ** 2;
@@ -115,6 +71,41 @@ export class Chunk {
 			const high = h + r;
 			for (let y = low; y < high; y++) {
 				for (let x = 0, i = 0; x < size; x++) {
+
+					let chunk = null;
+					let xmod = 0;
+					let ymod = 0;
+					if (y < 0) {
+						ymod -= size;
+						if (x < 0) {
+							chunk = backleftChunk;
+							xmod += size;
+						} else if (x >= size) {
+							chunk = backrightChunk;
+							xmod -= size;
+						} else
+							chunk = backChunk;
+					} else if (y >= size) {
+						ymod += size;
+						if (x < 0) {
+							chunk = frontleftChunk;
+							xmod += size;
+						} else if (x >= size) {
+							chunk = frontrightChunk;
+							xmod -= size;
+						} else
+							chunk = frontChunk;
+					} else {
+						if (x < 0) {
+							chunk = leftChunk;
+							xmod += size;
+						} else if (x >= size) {
+							chunk = rightChunk;
+							xmod -= size;
+						} else
+							chunk = backChunk;
+					}
+
 					for (let z = 0; z < size; z++, i++) {
 						const d = ((xn - x) ** 2) + ((yn - z) ** 2) + ((h - y) ** 2);
 						if (d < rr) {
@@ -128,25 +119,48 @@ export class Chunk {
 			}
 		};
 
+		const treenoise = terrainNoise.simplex2FBMTexture(position.x, position.z, size, size, 4, 10);
+		const getTreeValue = (x, y) => {
+			const column = treenoise[x];
+			return column ? (column[y] || 0) : 0;
+		}
 		for (let x = 0, i = 0; x < size; x++) {
 			for (let z = 0; z < size; z++, i++) {
 				const xn = position.x + z;
 				const yn = position.z + x;
-				const y = simpleDomainDistort(xn, yn, 6, 0.001);// domainDistort(xn * 0.0001, yn * 0.0001); //randomHeight(xn, yn, 0.001, 8);
+				const y = terrainNoise.simplex2FBM(xn, yn, 6, 0.001);
 
 				const blockHeight = baseline + Math.floor(y * varience);
-				const treeHeight = biomeValue(xn, yn, 1);
-				const biome = biomeValue(xn, yn, 0.01);
+			//	const treeHeight = biomeValue(xn, yn, 1);
+				const biome = bioNoise.simplex2FBM(xn, yn, 6, 0.001); //biomeValue(xn, yn, 0.01);
 				heightMap.push(blockHeight);
 
-				if (biome > 0.4 && treeHeight > treeBaseline && blockHeight > waterHeight) {
-					const height = Math.round(blockHeight + 3 + 60 * (treeHeight - treeBaseline));
-					//addLeaves(x, z, height, 4);
-					treeMap.push(height);
+				const R = Math.floor(biome * 8 + 3);
+				let max = 0;
+				if (R < 6) {
+				    // there are more efficient algorithms than this
+				    for (let xc = x - R; xc <= x + R; xc++) {
+				      for (let zc = z - R; zc <= z + R; zc++) {
+				        const e = getTreeValue(xc, zc);
+				        if (e > max) { max = e; }
+				      }
+				    }
 				}
+			    if (getTreeValue(x, z) == max) {
+			      // place tree at xc,yc
+				  const height = blockHeight + Math.floor(max * 6) + 3
+				  treeMap.push(height);
+				  addLeaves(x, height, z);
+			    }
 				else {
 					treeMap.push(blockHeight);
 				}
+				// if (biome > 0.98) { // && treeHeight > treeBaseline && blockHeight > waterHeight) {
+				// 	//const height = Math.round(blockHeight + 3 + 60 * (treeHeight - treeBaseline));
+				// 	//addLeaves(x, z, height, 2);
+				// 	treeMap.push(blockHeight + 3);
+				// }
+
 			}
 		}
 
@@ -159,17 +173,19 @@ export class Chunk {
 		const sand = Block.get(7);
 		const leaf = Block.get(8);
 
+		const leafChunkData = this.manager.getChunkLeafData(kx, kz);
+
 		for (let i = 0; i < height; i++) {
 			const plane = this.elements[i];
 			for (let ii = 0; ii < this.area; ii++) {
 				const ground = heightMap[ii];
 				const tree = treeMap[ii];
-				const leafset = leafMap[ii];
+				const leafdata = leafChunkData && leafChunkData[ii];
 				const underWater = ground <= waterHeight;
 
 				if (underWater) {
 					if (i > waterHeight) {
-						if (leafset && leafset.has(i)) {
+						if (leafdata && leafdata.has(i)) {
 							plane[ii] = leaf.instance();
 						}
 						else {
@@ -193,7 +209,7 @@ export class Chunk {
 						if (i <= tree) {
 							plane[ii] = oak.instance();
 						}
-						else if (leafset && leafset.has(i)) {
+						else if (leafdata && leafdata.has(i)) {
 							plane[ii] = leaf.instance();
 						}
 						else {
@@ -216,8 +232,9 @@ export class Chunk {
 		}
 	}
 	render () {
-		const kx = this.entity.position.x / this.width;
-		const kz = this.entity.position.z / this.width;
+		const position = this.getPosition();
+		const kx = position.x / this.width;
+		const kz = position.z / this.width;
 
 		const leftChunk = this.manager.get(`${kx - 1}_${kz}`);
 		const rightChunk = this.manager.get(`${kx + 1}_${kz}`);

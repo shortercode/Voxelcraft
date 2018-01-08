@@ -5,7 +5,7 @@
  * Optimisations by Peter Eastman (peastman@drizzle.stanford.edu).
  * Better rank ordering method by Stefan Gustavson in 2012.
  * Converted to Javascript by Joseph Gentle.
- // * ES6 style update and instancing added by Iain Shorter
+ * ES6 style update, instancing, Fractional Brownian Motion and texure generation added by Iain Shorter
  *
  * Version 2017-30-12
  *
@@ -139,4 +139,54 @@ export class Noise {
 	  // The result is scaled to return values in the interval [0,1].
 	  return (35 * (n0 + n1 + n2)) + 0.5;
 	}
+	simplex2FBM (x, y, h = 4, f = 1) {
+		x *= f;
+		y *= f;
+		let n = 0;
+		let m = 1;
+		let d = 1;
+		let t = 0;
+		while (h--) {
+			n += d * this.simplex2(m * x, m * y);
+			t += d;
+			m *= 2;
+			d *= 0.5;
+		}
+
+		return n / t;
+	}
+	simplex2FBMTexture (x, y, width, height, harmonics, frequency) {
+		const data = [];
+		width += x;
+		height += y;
+		for (; x < width; x++) {
+			const column = [];
+			for (let yn = y; yn < height; yn++) {
+				column.push(this.simplex2FBM(x, yn, harmonics, frequency));
+			}
+			data.push(column);
+		}
+
+		return data;
+	}
+	// function simpleDomainDistort (x, y, h = 4, f = 1) {
+	// 	x *= f;
+	// 	y *= f;
+	// 	const xq = FBM(x, y, h, f)
+	// 	const yq = FBM(x + 5.2, y + 1.3, h);
+	//
+	// 	return FBM(x + 4.0 * xq, y + 4.0 * yq, h);
+	// }
+	//
+	// function domainDistort (x, y, h = 4, f = 1) {
+	// 	x *= f;
+	// 	y *= f;
+	// 	const xq = FBM(x, y)
+	// 	const yq = FBM(x + 5.2, y + 1.3);
+	//
+	// 	const xr = FBM(x + 4 * xq + 1.7, y + 4 * yq + 9.2);
+	// 	const yr = FBM(x + 4 * xq + 8.3, y + 4 * yq + 2.8);
+	//
+	// 	return FBM(x + 4.0 * xr, y + 4.0 * yr);
+	// }
 }

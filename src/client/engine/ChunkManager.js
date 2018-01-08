@@ -10,10 +10,33 @@ export class ChunkManager {
 
 		this.chunkTable = new Map();
 		this.loadedChunks = new Map();
+		this.chunkLeafData = new Map();
 		this.game.on("frame", dt => this.onTick(dt));
 		this.user = new Vector3(Infinity, Infinity, Infinity);
 		this.renderQueue = [];
 		this.renderSet = new Set();
+	}
+	getChunkLeafData (x, y) {
+		const key = `${x}_${y}`;
+		return this.chunkLeafData.get(key);
+	}
+	createChunkLeafData (x, y) {
+		const key = `${x}_${y}`;
+
+		// if we already have the leafdata, return it
+		if (this.chunkLeafData.has(key))
+			return this.chunkLeafData.get(key);
+
+		// if the chunk exists it shouldn't have leaf data
+		if (this.loadedChunks.has(key) || this.chunkTable.has(key))
+			return false;
+
+		const size = this.chunkWidth ** 2;
+		const chunk = Array(size);
+
+		this.chunkLeafData.set(key, chunk);
+
+		return chunk;
 	}
 	getBlockAt (x, y, z) {
 
@@ -68,7 +91,6 @@ export class ChunkManager {
 			for (let y = 0; y < n; y++) {
 				if ((x - range) ** 2 + (y - range) ** 2 < rangeSq)
 				{
-					//console.log(x, y);
 					const xn = user.x + x - range;
 					const yn = user.z + y - range;
 					const key = `${xn}_${yn}`;
@@ -108,14 +130,15 @@ export class ChunkManager {
 			const [key, position] = renderQueue.pop();
 			const chunk = this.createChunk(position);
 			const [ x, y ] = key.split("_");
-			//this.renderQueue.push([ key, x, y, chunk ]);
+
 			this.loadedChunks.set(key, chunk);
+
 			if (this.chunkTable.has(key)) {
 				chunk.load(this.chunkTable.get(key));
 			}
 			else {
-				// mark neighbours for render
 				chunk.generate();
+				this.chunkLeafData.delete(key);
 			}
 
 			const leftKey = `${+x - 1}_${y}`;
@@ -127,6 +150,9 @@ export class ChunkManager {
 			const top = this.loadedChunks.get(topKey);
 			const bottom = this.loadedChunks.get(bottomKey);
 
+			// if we were to generate more chunks per frame this could be done
+			// more efficiently by marking these chunks as "shouldRender" and
+			// rendering when required. This will reduce duplicate renders
 			chunk.render();
 
 			if (left) {
@@ -142,46 +168,6 @@ export class ChunkManager {
 				bottom.render();
 			}
 		}
-    //
-		// for (const [key, position] of Array.from(shouldBeLoaded)) {
-		// 	const chunk = this.createChunk(position);
-		// 	const [ x, y ] = key.split("_");
-		// 	//this.renderQueue.push([ key, x, y, chunk ]);
-		// 	this.loadedChunks.set(key, chunk);
-		// 	if (this.chunkTable.has(key)) {
-		// 		chunk.load(this.chunkTable.get(key));
-		// 	}
-		// 	else {
-		// 		// mark neighbours for render
-		// 		chunk.generate();
-		// 	}
-    //
-		// 	const leftKey = `${x - 1}_${y}`;
-		// 	const rightKey = `${x + 1}_${y}`;
-		// 	const topKey = `${x}_${y - 1}`;
-		// 	const bottomKey = `${x}_${y + 1}`;
-		// 	const left = this.loadedChunks.get(leftKey);
-		// 	const right = this.loadedChunks.get(rightKey);
-		// 	const top = this.loadedChunks.get(topKey);
-		// 	const bottom = this.loadedChunks.get(bottomKey);
-    //
-		// 	chunk.render();
-    //
-		// 	if (left) {
-		// 		left.render();
-		// 	}
-		// 	if (right) {
-		// 		right.render();
-		// 	}
-		// 	if (top) {
-		// 		top.render();
-		// 	}
-		// 	if (bottom) {
-		// 		bottom.render();
-		// 	}
-    //
-		// 	break; // only render first of the list
-		// }
 	}
 	unloadChunk (chunk) {
 		this.game.solidScene.remove(chunk.entity);
