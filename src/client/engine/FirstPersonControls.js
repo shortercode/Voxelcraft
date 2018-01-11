@@ -23,28 +23,28 @@ export class FirstPersonControls {
 		this.velocity = new Vector3(0, 0, 0);
 		this.camera = game.camera;
 		this.keystate = {
-			"w": false,
-			"a": false,
-			"s": false,
-			"d": false,
-			" ": false,
-			"Shift": false
+			"KeyW": false,
+			"KeyA": false,
+			"KeyS": false,
+			"KeyD": false,
+			"Space": false,
+			"ShiftLeft": false
 		};
 	}
 	onTick (dt) {
 		const keystate = this.keystate;
 		const delta = new Vector3();
-		if (keystate.w != keystate.s) {
+		if (keystate.KeyW != keystate.KeyS) {
 			// accelarate
-			delta.z = keystate.w ? 1 : -1;
+			delta.z = keystate.KeyW ? 1 : -1;
 		}
 
-		if (keystate.a != keystate.d) {
-			delta.x = keystate.a ? 1 : -1;
+		if (keystate.KeyA != keystate.KeyD) {
+			delta.x = keystate.KeyA ? 1 : -1;
 		}
 
-		if (keystate[" "] != keystate.Shift) {
-			delta.y = keystate.Shift ? 1 : -1;
+		if (keystate.Space != keystate.ShiftLeft) {
+			delta.y = keystate.ShiftLeft ? 1 : -1;
 		}
 		else {
 			delta.y = GRAVITY;
@@ -118,7 +118,7 @@ export class FirstPersonControls {
 
 		if (velocity.isNaN())
 			throw new Error("Invalid velocity");
-		
+
 	}
 	onPointerLockChange (e) {
 		if (document.pointerLockElement === this.canvas) {
@@ -135,27 +135,27 @@ export class FirstPersonControls {
 	}
 	onKeyDown (e) {
 		e.preventDefault();
-		switch (e.key) {
-			case "w":
-			case "a":
-			case "s":
-			case "d":
-			case " ":
-			case "Shift":
-				this.keystate[e.key] = true;
+		switch (e.code) {
+			case "KeyW":
+			case "KeyA":
+			case "KeyS":
+			case "KeyD":
+			case "Space":
+			case "ShiftLeft":
+				this.keystate[e.code] = true;
 				break;
 		}
 	}
 	onKeyUp (e) {
 		e.preventDefault();
-		switch (e.key) {
-			case "w":
-			case "a":
-			case "s":
-			case "d":
-			case " ":
-			case "Shift":
-				this.keystate[e.key] = false;
+		switch (e.code) {
+			case "KeyW":
+			case "KeyA":
+			case "KeyS":
+			case "KeyD":
+			case "Space":
+			case "ShiftLeft":
+				this.keystate[e.code] = false;
 				break;
 		}
 	}
