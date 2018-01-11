@@ -39,6 +39,29 @@ export class Chunk {
 	getPosition () {
 		return this.entity.position;
 	}
+	setBlockAt (x, y, z, block) {
+		const plane = this.elements[y];
+		const w = this.width;
+		x = x % w;
+		z = z % w;
+		x = x < 0 ? x + w : x;
+		z = z < 0 ? z + w : z;
+
+		const n = z * w + x;
+		if (n < plane.length && n > -1)
+		{
+			plane[n] = block.instance();
+			this.render();
+			if (x === 0)
+				true; //
+			else if (x === this.width - 1)
+				true;
+			if (y === 0)
+				true;
+			else if (y === this.width - 1)
+				true;
+		}
+	}
 	generate () {
 		const position = this.getPosition();
 		const size = this.width;

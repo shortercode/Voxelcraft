@@ -1,4 +1,5 @@
 import { Vector3 } from "../math/Vector3.js";
+import { Block } from "./Block.js";
 import { Chunk } from "./Chunk.js";
 
 export class ChunkManager {
@@ -67,6 +68,28 @@ export class ChunkManager {
 		z = z < 0 ? z + w : z;
 
 		return plane[z * w + x];
+	}
+	removeBlockAt (x, y, z) {
+		x = Math.floor(-x);
+		y = Math.floor(-y);
+		z = Math.floor(-z);
+
+		if (y >= this.chunkHeight || y < 0)
+			return null;
+
+		const w = this.chunkWidth;
+		const d = 1 / w;
+
+		const chunkX = Math.floor(x * d);
+		const chunkZ = Math.floor(z * d);
+		const key = `${chunkX}_${chunkZ}`;
+
+		const chunk = this.get(key);
+
+		if (!chunk)
+			return null;
+
+		chunk.setBlockAt(x, y, z, Block.get(1));
 	}
 	get (key) {
 		return this.loadedChunks.get(key);
