@@ -1,75 +1,121 @@
-/*
-  Modified form of algorithm found @ https://stackoverflow.com/questions/16505905/walk-a-line-between-two-points-in-a-3d-voxel-space-visiting-all-cells
-  by https://stackoverflow.com/users/441352/wivlaro
-*/
-export function raycast(v0, v1, visitor) {
+export function raycast(origin, direction, radius, callback) {
+  // From "A Fast Voxel Traversal Algorithm for Ray Tracing"
+  // by John Amanatides and Andrew Woo, 1987
+  // <http://www.cse.yorku.ca/~amana/research/grid.pdf>
+  // <http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.3443>
+  // Extensions to the described algorithm:
+  //   • Imposed a distance limit.
+  //   • The face passed through to reach the current cube is provided to
+  //     the callback.
 
-  // performed before the rounding
-  const vx = v1.x === v0.x ? 1 : v1.x - v0.x;
-  const vy = v1.y === v0.y ? 1 : v1.y - v0.y;
-  const vz = v1.z === v0.z ? 1 : v1.z - v0.z;
+  // The foundation of this algorithm is a parameterized representation of
+  // the provided ray,
+  //                    origin + t * direction,
+  // except that t is not actually stored; rather, at any given point in the
+  // traversal, we keep track of the *greater* t values which we would have
+  // if we took a step sufficient to cross a cube boundary along that axis
+  // (i.e. change the integer part of the coordinate) in the variables
+  // tMaxX, tMaxY, and tMaxZ.
 
-  const x0 = Math.floor(v0.x);
-  const y0 = Math.floor(v0.y);
-  const z0 = Math.floor(v0.z);
-  const x1 = Math.floor(v1.x);
-  const y1 = Math.floor(v1.y);
-  const z1 = Math.floor(v1.z);
+  // Cube containing origin point.
+  var x = Math.floor(origin.x);
+  var y = Math.floor(origin.y);
+  var z = Math.floor(origin.z);
+  // Break out direction vector.
+  var dx = direction.x;
+  var dy = direction.y;
+  var dz = direction.z;
+  // Direction to increment x,y,z when stepping.
+  var stepX = signum(dx);
+  var stepY = signum(dy);
+  var stepZ = signum(dz);
+  // See description above. The initial values depend on the fractional
+  // part of the origin.
+  var tMaxX = intbound(origin.x, dx);
+  var tMaxY = intbound(origin.y, dy);
+  var tMaxZ = intbound(origin.z, dz);
+  // The change in t when taking a step (always positive).
+  var tDeltaX = stepX / dx;
+  var tDeltaY = stepY / dy;
+  var tDeltaZ = stepZ / dz;
+  // Buffer for reporting faces to the callback.
+  var face = { x: 0, y: 0, z: 0 };
 
-  const sx = x1 > x0 ? 1 : x1 < x0 ? -1 : 0;
-  const sy = y1 > y0 ? 1 : y1 < y0 ? -1 : 0;
-  const sz = z1 > z0 ? 1 : z1 < z0 ? -1 : 0;
+  // Avoids an infinite loop.
+  if (dx === 0 && dy === 0 && dz === 0)
+    throw new RangeError("Raycast in zero direction!");
 
-  const gxp = x0 + (x1 > x0 ? 1 : 0);
-  const gyp = y0 + (y1 > y0 ? 1 : 0);
-  const gzp = z0 + (z1 > z0 ? 1 : 0);
+  // Rescale from units of 1 cube-edge to units of 'direction' so we can
+  // compare with 't'.
+  radius /= Math.sqrt(dx*dx+dy*dy+dz*dz);
 
-  const vxvy = vx * vy;
-  const vxvz = vx * vz;
-  const vyvz = vy * vz;
+  while (true) {
 
-  const derrx = sx * vyvz;
-  const derry = sy * vxvz;
-  const derrz = sz * vxvy;
-
-  let errx = (gxp - x0) * vyvz;
-  let erry = (gyp - y0) * vxvz;
-  let errz = (gzp - z0) * vxvy;
-
-  let gx = x0;
-  let gy = y0;
-  let gz = z0;
-
-	let px = gx;
-	let py = gy;
-	let pz = gz;
-
-	// first block could be returned here, but we skip
-
-  while (gx !== x1 || gy !== y1 || gz !== z1) {
-
-    const xr = Math.abs(errx);
-    const yr = Math.abs(erry);
-    const zr = Math.abs(errz);
-
-    if (sx !== 0 && (sy === 0 || xr < yr) && (sz === 0 || xr < zr)) {
-      gx += sx;
-      errx += derrx;
-    }
-    else if (sy !== 0 && (sz === 0 || yr < zr)) {
-      gy += sy;
-      erry += derry;
-    }
-    else if (sz !== 0) {
-      gz += sz;
-      errz += derrz;
-    }
-
-    if (visitor(gx, gy, gz, px, py, pz))
+    // Invoke the callback, unless we are not *yet* within the bounds of the
+    // world.
+    if (callback(x, y, z, face))
       break;
 
-		px = gx;
-		py = gy;
-		pz = gz;
+    // tMaxX stores the t-value at which we cross a cube boundary along the
+    // X axis, and similarly for Y and Z. Therefore, choosing the least tMax
+    // chooses the closest cube boundary. Only the first case of the four
+    // has been commented in detail.
+    if (tMaxX < tMaxY) {
+      if (tMaxX < tMaxZ) {
+        if (tMaxX > radius) break;
+        // Update which cube we are now in.
+        x += stepX;
+        // Adjust tMaxX to the next X-oriented boundary crossing.
+        tMaxX += tDeltaX;
+        // Record the normal vector of the cube face we entered.
+        face.x = -stepX;
+        face.y = 0;
+        face.z = 0;
+      } else {
+        if (tMaxZ > radius) break;
+        z += stepZ;
+        tMaxZ += tDeltaZ;
+        face.x = 0;
+        face.y = 0;
+        face.z = -stepZ;
+      }
+    } else {
+      if (tMaxY < tMaxZ) {
+        if (tMaxY > radius) break;
+        y += stepY;
+        tMaxY += tDeltaY;
+        face.x = 0;
+        face.y = -stepY;
+        face.z = 0;
+      } else {
+        // Identical to the second case, repeated for simplicity in
+        // the conditionals.
+        if (tMaxZ > radius) break;
+        z += stepZ;
+        tMaxZ += tDeltaZ;
+        face.x = 0;
+        face.y = 0;
+        face.z = -stepZ;
+      }
+    }
   }
+}
+
+function signum(x) {
+  return x > 0 ? 1 : x < 0 ? -1 : 0;
+}
+
+function intbound(s, ds) {
+  // Find the smallest positive t such that s+t*ds is an integer.
+  if (ds < 0) {
+    return intbound(-s, -ds);
+  } else {
+    s = mod(s, 1);
+    // problem is now s+t*ds = 1
+    return (1-s)/ds;
+  }
+}
+
+function mod(value, modulus) {
+  return (value % modulus + modulus) % modulus;
 }
