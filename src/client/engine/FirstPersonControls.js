@@ -132,6 +132,20 @@ export class FirstPersonControls {
 		if (document.pointerLockElement !== this.canvas) {
 			this.canvas.requestPointerLock();
 		}
+		else {
+			const start = this.camera.position;
+			const direction = this.camera.facing;
+			const radius = 5;
+			console.log(start, direction);
+			raycast(start, direction, radius, (x, y, z, face) => {
+				console.log(x, y, z)
+				const block = this.game.chunkManager.getBlockAt(x, y, z);
+				if (block && block.solid) {
+					this.game.chunkManager.removeBlockAt(x, y, z);
+					return true;
+				}
+			});
+		}
 	}
 	onKeyDown (e) {
 		e.preventDefault();
