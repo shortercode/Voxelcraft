@@ -42,6 +42,9 @@ export class Chunk {
 	setBlockAt (x, y, z, block) {
 		const plane = this.elements[y];
 		const w = this.width;
+		const xn = Math.floor(x / w);
+		const zn = Math.floor(z / w);
+
 		x = x % w;
 		z = z % w;
 		x = x < 0 ? x + w : x;
@@ -52,14 +55,21 @@ export class Chunk {
 		{
 			plane[n] = block.instance();
 			this.render();
-			if (x === 0)
-				true; //
-			else if (x === this.width - 1)
-				true;
-			if (y === 0)
-				true;
-			else if (y === this.width - 1)
-				true;
+			if (x === 0) {
+				const neighbour = this.manager.get(`${xn - 1}_${zn}`);
+				neighbour && neighbour.render();
+			} else if (x === this.width - 1) {
+				const neighbour = this.manager.get(`${xn + 1}_${zn}`);
+				neighbour && neighbour.render();
+			}
+
+			if (z === 0) {
+				const neighbour = this.manager.get(`${xn}_${zn - 1}`);
+				neighbour && neighbour.render();
+			} else if (z === this.width - 1) {
+				const neighbour = this.manager.get(`${xn}_${zn + 1}`);
+				neighbour && neighbour.render();
+			}
 		}
 	}
 	generate () {
