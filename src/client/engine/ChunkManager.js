@@ -69,6 +69,29 @@ export class ChunkManager {
 
 		return plane[z * w + x];
 	}
+	setBlockAt (x, y, z, block) {
+		x = Math.round(-x);
+		y = Math.round(-y);
+		z = Math.round(-z);
+
+		if (y >= this.chunkHeight || y < 0)
+			return null;
+
+		const w = this.chunkWidth;
+		const d = 1 / w;
+
+		const chunkX = Math.floor(x * d);
+		const chunkZ = Math.floor(z * d);
+		const key = `${chunkX}_${chunkZ}`;
+
+		const chunk = this.get(key);
+
+		if (!chunk)
+			return null;
+
+		chunk.setBlockAt(x, y, z, block);
+	}
+
 	removeBlockAt (x, y, z) {
 		x = Math.floor(-x);
 		y = Math.floor(-y);
