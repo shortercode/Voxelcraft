@@ -16,7 +16,7 @@ export class Camera {
 		this.fov = fov;
 		this.near = near;
 		this.far = far;
-		this.facing = new Vector3(0, 0, 1);
+		this.facing = new Vector3();
 		this.change(aspect, fov, near, far);
 	}
 	change (aspect, fov = this.fov, near = this.near, far = this.far) {
@@ -35,7 +35,6 @@ export class Camera {
 			this.rotationMatrix.identity().position(this.position);
 			this.matrix.rotate(this.rotation);
 			this.matrix.multiply(this.rotationMatrix);
-			this.facing.set(0, 0, -1).applyQuaternion(this.rotation);
 			//this.matrix.multiply(this.perspective);
 			this.shouldUpdate = false;
 		}
@@ -53,6 +52,11 @@ export class Camera {
 	}
 	rotate (x, y, z) {
 		this.rotation.setEular(x, y, z);
+		this.facing.set(
+			Math.sin(-y) * Math.cos(x),
+			Math.sin(x),
+			Math.cos(-y) * Math.cos(x)
+		).normalise();
 		this.shouldUpdate = true;
 	}
 }
