@@ -2,6 +2,7 @@ import { CompositeDisposable } from "../events/CompositeDisposable.js";
 import { Disposable } from "../events/Disposable.js";
 import { Vector3 } from "../math/Vector3.js";
 import { raycast } from "./raycast.js";
+import { Block } from "./Block.js";
 
 const GRAVITY = 0;
 
@@ -63,7 +64,7 @@ export class FirstPersonControls {
 
 		dt *= 0.05;
 
-		const drag = 0.27;
+		const drag = 0.9;
 
 		const start = this.camera.position;
 		const velocity = this.velocity;
@@ -129,6 +130,7 @@ export class FirstPersonControls {
 		}
 	}
 	onMouseDown (e) {
+		const { button } = e;
 		if (document.pointerLockElement !== this.canvas) {
 			this.canvas.requestPointerLock();
 		}
@@ -136,15 +138,30 @@ export class FirstPersonControls {
 			const start = this.camera.position;
 			const direction = this.camera.facing;
 			const radius = 5;
-			console.log(start, direction);
+			console.log("Start", start);
+			console.log("Direction", direction);
+			let xx, yy, zz, hit;
 			raycast(start, direction, radius, (x, y, z, face) => {
 				console.log(x, y, z)
 				const block = this.game.chunkManager.getBlockAt(x, y, z);
 				if (block && block.solid) {
-					this.game.chunkManager.removeBlockAt(x, y, z);
+					if (button == 0) {
+						this.game.chunkManager.removeBlockAt(x, y, z);
+						hit = false;
+					}
 					return true;
 				}
+				else {
+					xx = x;
+					yy = y;
+					zz = z;
+					hit = true;
+				}
 			});
+			if (hit && button == 2) {
+				const stone = Block.get(3);
+				this.game.chunkManager.setBlockAt(xx, yy, zz, stone);
+			}
 		}
 	}
 	onKeyDown (e) {
