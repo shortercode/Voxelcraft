@@ -1,11 +1,12 @@
-class UserInterface {
-	constructor () {
+export class UserInterface {
+	constructor (game) {
 		this.element = document.createElement('canvas');
 		this.context = this.element.getContext('2d');
 		this.element.style.zIndex = 1;
 		this.pixelRatio = devicePixelRatio;
 		this.width = 0;
 		this.height = 0;
+		this.game = game;
 	}
 	updateSize () {
 		const w = innerWidth;
@@ -26,7 +27,25 @@ class UserInterface {
 		this.element.height = correctedHeight;
 	}
 	render () {
+		if (this.width != innerWidth || this.height != innerHeight)
+			this.setSize(innerWidth, innerHeight);
+		const width = this.element.width;
+		const height = this.element.height;
+		const size = 20;
+		const halfWidth = width * 0.5;
+		const halfHeight = height * 0.5;
 
+		const ctx = this.context;
+
+		ctx.clearRect(0, 0, width, height);
+		ctx.beginPath();
+		ctx.lineWidth = 4;
+		ctx.moveTo(halfWidth - size, halfHeight);
+		ctx.lineTo(halfWidth + size, halfHeight);
+		ctx.moveTo(halfWidth, halfHeight - size);
+		ctx.lineTo(halfWidth, halfHeight + size);
+		ctx.strokeStyle = "white";
+		ctx.stroke();
 	}
 }
 

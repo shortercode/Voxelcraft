@@ -4,11 +4,13 @@ import { Stat } from "./engine/Stat.js";
 import { Dispatcher } from "./events/Dispatcher.js";
 import { ChunkManager } from "./engine/ChunkManager.js";
 import { Block } from "./engine/Block.js";
+import { UserInterface } from "./engine/UserInterface.js";
 
 class Game extends Dispatcher {
 	constructor () {
 		super();
 		this.speedo = new Stat(this);
+		this.overlay = new UserInterface(this);
 		this.renderer = new Renderer();
 		this.camera = this.renderer.createCamera(1, 45, 0.1, 1000);
 		this.scene = this.renderer.createScene();
@@ -48,6 +50,7 @@ class Game extends Dispatcher {
 			this.camera.move({y: -105, z: 5, x: 5});
 
 			document.body.appendChild(this.renderer.element);
+			document.body.appendChild(this.overlay.element);
 		})();
 	}
 	getCameraPosition () {
@@ -55,6 +58,7 @@ class Game extends Dispatcher {
 	}
 	tick (dt) {
 		this.emit("frame", dt);
+		this.overlay.render();
 		this.renderer.render();
 	}
 }
