@@ -3,7 +3,10 @@ import { Block } from "./Block.js";
 import { Vector3 } from "../math/Vector3.js";
 import { Noise } from "../math/Noise.js";
 
-const terrainNoise = new Noise();
+function randomSeed () {
+	return (Date.now() % 65535) + 1
+}
+const terrainNoise = new Noise(randomSeed());
 const bioNoise = new Noise(16);
 
 export class Chunk {
@@ -325,12 +328,12 @@ export class Chunk {
 					if (current.individual) {
 						const faces = secondaryFaces;
 						faces.push(
-							[ Block.TOP, position, current.getTexture("top"), Block.NORMAL.TOP ],
-							[ Block.BOTTOM, position, current.getTexture("bottom"), Block.NORMAL.BOTTOM ],
-							[ Block.FRONT, position, current.getTexture("front"), Block.NORMAL.FRONT ],
-							[ Block.BACK, position, current.getTexture("back"), Block.NORMAL.BACK ],
-							[ Block.LEFT, position, current.getTexture("left"), Block.NORMAL.LEFT ],
-							[ Block.RIGHT, position, current.getTexture("right"), Block.NORMAL.RIGHT ],
+								current.getFace("top", position),
+								current.getFace("bottom", position),
+								current.getFace("front", position),
+								current.getFace("back", position),
+								current.getFace("left", position),
+								current.getFace("right", position)
 						);
 
 					}
@@ -338,22 +341,22 @@ export class Chunk {
 						const faces = secondaryFaces;
 
 						if (!top || !top.solid) {
-							faces.push([ Block.TOP, position, current.getTexture("top"), Block.NORMAL.TOP ]);
+							faces.push(current.getFace("top", position));
 						}
 						if (!bottom || !bottom.solid) {
-							faces.push([ Block.BOTTOM, position, current.getTexture("bottom"), Block.NORMAL.BOTTOM ]);
+							faces.push(current.getFace("bottom", position));
 						}
 						if (!front || !front.solid) {
-							faces.push([ Block.FRONT, position, current.getTexture("front"), Block.NORMAL.FRONT ]);
+							faces.push(current.getFace("front", position));
 						}
 						if (!back || !back.solid) {
-							faces.push([ Block.BACK, position, current.getTexture("back"), Block.NORMAL.BACK ]);
+							faces.push(current.getFace("back", position));
 						}
 						if (!left || !left.solid) {
-							faces.push([ Block.LEFT, position, current.getTexture("left"), Block.NORMAL.LEFT ]);
+							faces.push(current.getFace("left", position));
 						}
 						if (!right || !right.solid) {
-							faces.push([ Block.RIGHT, position, current.getTexture("right"), Block.NORMAL.RIGHT ]);
+							faces.push(current.getFace("right", position));
 						}
 					}
 					else {
@@ -381,8 +384,8 @@ export class Chunk {
 			}
 		}
 
-		this.generateEntity(primaryFaces, this.entity);
-		this.generateEntity(secondaryFaces, this.secondaryEntity);
+		this.entity.generateFromFaces(primaryFaces);
+		this.secondaryEntity.generateFromFaces(secondaryFaces);
 		// console.timeEnd	("render");
 	}
 

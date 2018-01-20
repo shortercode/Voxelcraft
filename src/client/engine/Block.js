@@ -33,6 +33,15 @@ export class Block {
 		this.textures["front"] = coords;
 		this.textures["back"] = coords;
 	}
+	getFace (side, position) {
+		const caps = side.toUpperCase();
+		return [
+			Block[caps],
+			position,
+			this.getTexture(side),
+			Block.NORMAL[caps]
+		];
+	}
 	setTexture (side, src) {
 		if (!src)
 			console.warn(`${this.name} is missing texture ${side}`);
