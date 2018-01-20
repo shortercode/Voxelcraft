@@ -24,8 +24,6 @@ class Game extends Dispatcher {
 		this.shader = this.renderer.createDefaultShader();
 		this.chunkManager = null;
 
-		this.controls = new FirstPersonControls(document, this);
-
 		this.renderer.setCamera(this.camera);
 		this.renderer.setScene(this.scene);
 		this.renderer.setShader(this.shader);
@@ -35,6 +33,7 @@ class Game extends Dispatcher {
 			const atlas = await Block.parseDefinitions(this.renderer.context, "blocks.json");
 			this.chunkManager = new ChunkManager(this, 16, 100, 12);
 			this.renderer.setAtlas(atlas);
+			this.controls = new FirstPersonControls(document, this);
 
 			let time = performance.now();
 			const tick = () => {
@@ -46,6 +45,7 @@ class Game extends Dispatcher {
 			};
 
 			tick();
+
 
 			this.camera.move({y: -105, z: 5, x: 5});
 

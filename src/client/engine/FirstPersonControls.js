@@ -3,8 +3,29 @@ import { Disposable } from "../events/Disposable.js";
 import { Vector3 } from "../math/Vector3.js";
 import { raycast } from "./raycast.js";
 import { Block } from "./Block.js";
+import { Entity } from "./Entity.js";
 
 const GRAVITY = 0;
+
+function createFloatingCursor (renderer) {
+	const block = Block.get(2);
+	const position = new Vector3();
+	const faces = [
+		block.getFace("top", position),
+		block.getFace("bottom", position),
+		block.getFace("front", position),
+		block.getFace("back", position),
+		block.getFace("left", position),
+		block.getFace("right", position)
+	];
+	const entity = renderer.createEntity();
+	//entity.scale.set(1, 0.1, 0.1);
+	entity.generateFromFaces(faces);
+
+	console.log(entity)
+
+	return entity;
+}
 
 export class FirstPersonControls {
 	constructor (doc, game, max, acc) {
@@ -16,7 +37,8 @@ export class FirstPersonControls {
 		this.subscribers.add(Disposable.from(document, "pointerlockchange", e => this.onPointerLockChange(e)));
 		this.subscribers.add(Disposable.from(document, "mousedown", e => this.onMouseDown(e)));
 		this.subscribers.add(game.on("frame", dt => this.onTick(dt)));
-
+		this.floatingCursor = createFloatingCursor(game.renderer);
+		game.transparentScene.add(this.floatingCursor);
 		this.moveListener = null;
 		this.max = max;
 		this.game = game;
@@ -70,7 +92,13 @@ export class FirstPersonControls {
 		const velocity = this.velocity;
 		const acceleration = delta;
 		const finish = velocity.clone().multiply(dt).add(start);
-		const originBlock = this.game.chunkManager.getBlockAt(start.x, start.y, start.z);
+		//const originBlock = this.game.chunkManager.getBlockAt(start.x, start.y, start.z);
+
+		const cursor = this.floatingCursor.position;
+
+		cursor.copy(this.camera.facing).multiply(10).add(start);
+
+		console.log(start, cursor);
 
 		// if (!originBlock || !originBlock.opaque)
 		// {
