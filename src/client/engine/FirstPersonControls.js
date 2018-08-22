@@ -5,27 +5,7 @@ import { raycast } from "./raycast.js";
 import { Block } from "./Block.js";
 import { Entity } from "./Entity.js";
 
-const GRAVITY = 0;
-
-function createFloatingCursor (renderer) {
-	const block = Block.get(2);
-	const position = new Vector3();
-	const faces = [
-		block.getFace("top", position),
-		block.getFace("bottom", position),
-		block.getFace("front", position),
-		block.getFace("back", position),
-		block.getFace("left", position),
-		block.getFace("right", position)
-	];
-	const entity = renderer.createEntity();
-	//entity.scale.set(1, 0.1, 0.1);
-	entity.generateFromFaces(faces);
-
-	console.log(entity)
-
-	return entity;
-}
+const GRAVITY = -2;
 
 export class FirstPersonControls {
 	constructor (doc, game, max, acc) {
@@ -37,8 +17,6 @@ export class FirstPersonControls {
 		this.subscribers.add(Disposable.from(document, "pointerlockchange", e => this.onPointerLockChange(e)));
 		this.subscribers.add(Disposable.from(document, "mousedown", e => this.onMouseDown(e)));
 		this.subscribers.add(game.on("frame", dt => this.onTick(dt)));
-		this.floatingCursor = createFloatingCursor(game.renderer);
-		game.transparentScene.add(this.floatingCursor);
 		this.moveListener = null;
 		this.max = max;
 		this.game = game;
@@ -57,19 +35,25 @@ export class FirstPersonControls {
 	onTick (dt) {
 		const keystate = this.keystate;
 		const delta = new Vector3();
+		const start = this.camera.position;
+		let block;
+
 		if (keystate.KeyW != keystate.KeyS) {
 			// accelarate
-			delta.z = keystate.KeyW ? 1 : -1;
+			delta.z = keystate.KeyW ? -1 : 1;
 		}
 
 		if (keystate.KeyA != keystate.KeyD) {
-			delta.x = keystate.KeyA ? 1 : -1;
+			delta.x = keystate.KeyA ? -1 : 1;
 		}
 
 		if (keystate.Space != keystate.ShiftLeft) {
-			delta.y = keystate.ShiftLeft ? 1 : -1;
+			delta.y = keystate.ShiftLeft ? -1 : 1;
 		}
 		else {
+			// block = this.game.chunkManager.getBlockAt(start.x, start.y - 2, start.z);
+			// if (block && block.solid)
+			// 	delta.y = 
 			delta.y = GRAVITY;
 		}
 
@@ -82,48 +66,26 @@ export class FirstPersonControls {
 		delta.x = x * cs - z * sn;
 		delta.z = x * sn + z * cs;
 
-		//return
+		dt = Math.min(dt, 64);
+		dt *= 0.01;
 
-		dt *= 0.05;
+		const drag = 0.2;
 
-		const drag = 0.9;
-
-		const start = this.camera.position;
 		const velocity = this.velocity;
 		const acceleration = delta;
-		const finish = velocity.clone().multiply(dt).add(start);
-		//const originBlock = this.game.chunkManager.getBlockAt(start.x, start.y, start.z);
+		const finish = velocity.clone().multiply(dt).add(start).sub({ y: 1.5 }); // subtract 1.5 for checking foot collision
 
-		const cursor = this.floatingCursor.position;
+		block = this.game.chunkManager.getBlockAt(finish.x, finish.y, finish.z);
+		
+		if (block && block.solid) {
+			finish.y = Math.floor(finish.y);
+			while (block && block.solid) {
+				finish.add({ y: 1 });
+				block = this.game.chunkManager.getBlockAt(finish.x, finish.y, finish.z);
+			}
+		}
 
-		cursor.copy(this.camera.facing).multiply(10).add(start);
-
-		console.log(start, cursor);
-
-		// if (!originBlock || !originBlock.opaque)
-		// {
-			//let n = 1000;
-
-			// 	console.log("ray");
-			// raycast (start, finish, (x, y, z, px, py, pz) => {
-      //
-			// 	n--;
-			// 	if (n < 0) {
-			// 		throw new Error("Excessive ray trace");
-			// 	}
-      //
-			// 	const block = this.game.chunkManager.getBlockAt(x, y, z);
-			// 	// console.log(x, y, z, block);
-		  //   if (block && block.opaque) {
-			// 		//console.log("snap");
-			// 		finish.x = px;
-			// 		finish.y = py;
-			// 		finish.z = pz;
-			// 		return true;
-		  //       // stop
-		  //   }
-			// });
-		//}
+		finish.add({ y: 1.5 }); // add back the 1.5 to give camera proper height
 
 		this.camera.setPosition(finish);
 		velocity.clone(finish).sub(start);
@@ -165,25 +127,20 @@ export class FirstPersonControls {
 		else {
 			const start = this.camera.position;
 			const direction = this.camera.facing;
-			const radius = 5;
-			console.log("Start", start);
-			console.log("Direction", direction);
-			let xx, yy, zz, hit;
+			const radius = 10;
+			let xx, yy, zz, hit = false;
 			raycast(start, direction, radius, (x, y, z, face) => {
-				console.log(x, y, z)
 				const block = this.game.chunkManager.getBlockAt(x, y, z);
 				if (block && block.solid) {
-					if (button == 0) {
+					if (button == 0)
 						this.game.chunkManager.removeBlockAt(x, y, z);
-						hit = false;
-					}
+					hit = true;
 					return true;
 				}
 				else {
 					xx = x;
 					yy = y;
 					zz = z;
-					hit = true;
 				}
 			});
 			if (hit && button == 2) {

@@ -309,8 +309,6 @@ export class Chunk {
 			for (let x = 0; x < this.width; x++) {
 				for (let y = 0; y < this.width; y++) {
 
-
-
 					const current = getBlock(i, x, y);
 					const top = getBlock(i + 1, x, y);
 					const bottom = getBlock(i - 1, x, y);
@@ -387,91 +385,6 @@ export class Chunk {
 		this.entity.generateFromFaces(primaryFaces);
 		this.secondaryEntity.generateFromFaces(secondaryFaces);
 		// console.timeEnd	("render");
-	}
-
-	generateEntity (faces, entity) {
-		const length = faces.length;
-		const count = length * 4;
-		const vertexArray = new Float32Array(count * 3);
-		const normalArray = new Float32Array(count * 3);
-		const textureArray = new Float32Array(count * 3);
-		const indexArray = new Uint16Array(length * 6);
-
-		let i = 0;
-		let vi = 0;
-		let ni = 0;
-		let ti = 0;
-		let ii = 0;
-
-		for (const face of faces)
-		{
-			const verticies = face[0];
-			const position = face[1];
-			const texture = face[2];
-			const normals = face[3];
-
-			vertexArray[vi++] = verticies[0].x + position[0];
-			vertexArray[vi++] = verticies[0].y + position[1];
-			vertexArray[vi++] = verticies[0].z + position[2];
-
-			vertexArray[vi++] = verticies[1].x + position[0];
-			vertexArray[vi++] = verticies[1].y + position[1];
-			vertexArray[vi++] = verticies[1].z + position[2];
-
-			vertexArray[vi++] = verticies[2].x + position[0];
-			vertexArray[vi++] = verticies[2].y + position[1];
-			vertexArray[vi++] = verticies[2].z + position[2];
-
-			vertexArray[vi++] = verticies[3].x + position[0];
-			vertexArray[vi++] = verticies[3].y + position[1];
-			vertexArray[vi++] = verticies[3].z + position[2];
-
-			normalArray[ni++] = normals[0].x;
-			normalArray[ni++] = normals[0].y;
-			normalArray[ni++] = normals[0].z;
-
-			normalArray[ni++] = normals[1].x;
-			normalArray[ni++] = normals[1].y;
-			normalArray[ni++] = normals[1].z;
-
-			normalArray[ni++] = normals[2].x;
-			normalArray[ni++] = normals[2].y;
-			normalArray[ni++] = normals[2].z;
-
-			normalArray[ni++] = normals[3].x;
-			normalArray[ni++] = normals[3].y;
-			normalArray[ni++] = normals[3].z;
-
-			textureArray[ti++] = texture[0];
-			textureArray[ti++] = texture[1];
-			textureArray[ti++] = texture[2];
-
-			textureArray[ti++] = texture[3];
-			textureArray[ti++] = texture[4];
-			textureArray[ti++] = texture[5];
-
-			textureArray[ti++] = texture[6];
-			textureArray[ti++] = texture[7];
-			textureArray[ti++] = texture[8];
-
-			textureArray[ti++] = texture[9];
-			textureArray[ti++] = texture[10];
-			textureArray[ti++] = texture[11];
-
-			indexArray[ii++] = i;
-			indexArray[ii++] = i + 1;
-			indexArray[ii++] = i + 2;
-			indexArray[ii++] = i;
-			indexArray[ii++] = i + 2;
-			indexArray[ii++] = i + 3;
-
-			i += 4;
-		}
-
-		entity.setNormalBuffer(normalArray);
-		entity.setVertexBuffer(vertexArray);
-		entity.setTextureBuffer(textureArray);
-		entity.setIndexBuffer(indexArray);
 	}
 
 	save () {

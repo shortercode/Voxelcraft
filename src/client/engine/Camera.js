@@ -56,7 +56,7 @@ export class Camera {
 			Math.sin(-y) * Math.cos(x),
 			Math.sin(x),
 			Math.cos(-y) * Math.cos(x)
-		).normalise();
+		).normalise().inverse();
 		this.shouldUpdate = true;
 	}
 }

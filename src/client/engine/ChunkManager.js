@@ -41,9 +41,9 @@ export class ChunkManager {
 	}
 	getBlockAt (x, y, z) {
 
-		x = Math.floor(-x);
-		y = Math.floor(-y);
-		z = Math.floor(-z);
+		x = Math.floor(x);
+		y = Math.floor(y);
+		z = Math.floor(z);
 
 		if (y >= this.chunkHeight || y < 0)
 			return null;
@@ -70,9 +70,9 @@ export class ChunkManager {
 		return plane[z * w + x];
 	}
 	setBlockAt (x, y, z, block) {
-		x = Math.round(-x);
-		y = Math.round(-y);
-		z = Math.round(-z);
+		x = Math.round(x);
+		y = Math.round(y);
+		z = Math.round(z);
 
 		if (y >= this.chunkHeight || y < 0)
 			return null;
@@ -93,9 +93,9 @@ export class ChunkManager {
 	}
 
 	removeBlockAt (x, y, z) {
-		x = Math.floor(-x);
-		y = Math.floor(-y);
-		z = Math.floor(-z);
+		x = Math.floor(x);
+		y = Math.floor(y);
+		z = Math.floor(z);
 
 		if (y >= this.chunkHeight || y < 0)
 			return null;
@@ -120,7 +120,7 @@ export class ChunkManager {
 	onTick (dt) {
 		const user = this.game
 			.getCameraPosition()
-			.divide(-this.chunkWidth)
+			.divide(this.chunkWidth)
 			.floor();
 
 		const hasMoved = !user.equals(this.user);
@@ -151,7 +151,6 @@ export class ChunkManager {
 		}
 
 		for (const [key, chunk] of this.loadedChunks) {
-			const pos = chunk.getPosition();
 			if (shouldBeLoaded.has(key)) {
 				shouldBeLoaded.delete(key);
 			}
@@ -225,7 +224,7 @@ export class ChunkManager {
 		chunk.setPosition(pos);
 		this.game.solidScene.add(chunk.entity);
 		this.game.transparentScene.add(chunk.secondaryEntity);
-		//this.loadedChunks.add(chunk);
+		// this.loadedChunks.add(chunk);
 
 		return chunk;
 	}

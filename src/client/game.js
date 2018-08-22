@@ -22,11 +22,11 @@ class Game extends Dispatcher {
 		this.scene.add(this.transparentScene);
 
 		this.shader = this.renderer.createDefaultShader();
+		this.secondaryShader = this.renderer.createSecondaryShader();
 		this.chunkManager = null;
 
 		this.renderer.setCamera(this.camera);
 		this.renderer.setScene(this.scene);
-		this.renderer.setShader(this.shader);
 
 		(async () => {
 
@@ -44,10 +44,9 @@ class Game extends Dispatcher {
 				this.tick(dt);
 			};
 
-			tick();
-
-
-			this.camera.move({y: -105, z: 5, x: 5});
+			this.camera.move({y: 100, z: 0, x: 0});
+			
+			tick();	
 
 			document.body.appendChild(this.renderer.element);
 			document.body.appendChild(this.overlay.element);

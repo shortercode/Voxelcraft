@@ -191,9 +191,9 @@ export class Matrix4 {
 	}
 
 	position ({x = 0, y = 0, z = 0}) {
-		this.elements[12] = x;
-		this.elements[13] = y;
-		this.elements[14] = z;
+		this.elements[12] = -x;
+		this.elements[13] = -y;
+		this.elements[14] = -z;
 	}
 
 	perspective (left, right, top, bottom, near, far) {
