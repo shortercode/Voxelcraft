@@ -212,6 +212,19 @@ export class ChunkManager {
 			if (bottom) {
 				bottom.render();
 			}
+
+			let chunks = 0;
+			let triangles = 0;
+			let vertices = 0;
+			let faces = 0;
+			for (const chunk of this.loadedChunks.values()) {
+				chunks ++;
+				triangles += chunk.stats.triangles;
+				faces += chunk.stats.faces;
+				vertices += chunk.stats.vertices;
+			}
+
+			console.log(`Chunks: ${chunks} Triangles: ${triangles} Faces: ${faces} Vertices: ${vertices}`);
 		}
 	}
 	unloadChunk (chunk) {

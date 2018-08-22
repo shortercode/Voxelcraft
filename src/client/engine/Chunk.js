@@ -16,6 +16,11 @@ export class Chunk {
 		this.area = width ** 2;
 		this.height = height;
 		this.elements = [];
+		this.stats = {
+			faces: 0,
+			triangles: 0,
+			vertices: 0
+		};
 
 		const air = Block.get(1);
 
@@ -384,6 +389,14 @@ export class Chunk {
 
 		this.entity.generateFromFaces(primaryFaces);
 		this.secondaryEntity.generateFromFaces(secondaryFaces);
+
+		const count = primaryFaces.length + secondaryFaces.length;
+
+		this.stats = {
+			faces: count,
+			triangles: count * 2,
+			vertices: count * 4
+		};
 		// console.timeEnd	("render");
 	}
 
