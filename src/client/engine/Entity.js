@@ -15,7 +15,6 @@ export class Entity {
 		this.indexBuffer = gl.createBuffer();
 		this.textureBuffer = gl.createBuffer();
 		this.normalBuffer = gl.createBuffer();
-		this.texture = null;
 		this.shouldUpdate = true;
 		this.transparent = false;
 	}
@@ -61,7 +60,6 @@ export class Entity {
 		this.indexBuffer = null;
 		this.textureBuffer = null;
 		this.normalBuffer = null;
-		this.texture = null;
 		this.shouldUpdate = true;
 	}
 	clone () {
@@ -76,8 +74,6 @@ export class Entity {
 		clone.indexBuffer = this.indexBuffer;
 		clone.textureBuffer = this.textureBuffer;
 		clone.normalBuffer = this.normalBuffer;
-
-		clone.texture = this.texture;
 		return clone;
 	}
 	update () {
@@ -107,9 +103,6 @@ export class Entity {
 		const gl = this.context;
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, normals, dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
-	}
-	setTexture (t) {
-		this.texture = t;
 	}
 	setPosition (v) {
 		this.position.copy(v);
