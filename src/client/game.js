@@ -22,7 +22,6 @@ class Game extends Dispatcher {
 		this.scene.add(this.transparentScene);
 
 		this.shader = this.renderer.createDefaultShader();
-		this.secondaryShader = this.renderer.createSecondaryShader();
 		this.chunkManager = null;
 
 		this.renderer.setCamera(this.camera);

@@ -1,7 +1,31 @@
 import { Vector3 } from "../math/Vector3.js";
 import { Quaternion } from "../math/Quaternion.js";
 import { Matrix4 } from "../math/Matrix4.js";
-import { getTextureCoords } from "./loadTexture.js";
+
+function createVAO (gl, count) {
+	const buffers = [];
+	const index = gl.createBuffer();
+	const vao = gl.createVertexArray();
+
+	gl.bindVertexArray(vao);
+	
+	while(count--) {
+		const buffer = gl.createBuffer();
+		buffers.unshift(buffer);
+		gl.enableVertexAttribArray(count);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.vertexAttribPointer(count, 3, gl.FLOAT, false, 0, 0);
+	}
+	
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index);
+	gl.bindVertexArray(null);
+
+	return {
+		index,
+		buffers,
+		vao
+	};
+}
 
 export class Entity {
 	constructor (gl) {
@@ -11,10 +35,16 @@ export class Entity {
 		this.scale = new Vector3(1, 1, 1);
 		this.matrix = new Matrix4();
 		this.length = 0;
-		this.vertexBuffer = gl.createBuffer();
-		this.indexBuffer = gl.createBuffer();
-		this.textureBuffer = gl.createBuffer();
-		this.normalBuffer = gl.createBuffer();
+
+		const obj = createVAO(gl, 3);
+
+		// create buffers
+		this.indexBuffer = obj.index;
+		this.vertexBuffer = obj.buffers[0];
+		this.normalBuffer = obj.buffers[1];
+		this.textureBuffer = obj.buffers[2];
+		this.VAO = obj.vao;
+
 		this.shouldUpdate = true;
 		this.transparent = false;
 	}
@@ -128,6 +158,8 @@ export class Entity {
 		let ti = 0;
 		let ii = 0;
 
+		const { x, y, z } = this.position;
+
 		for (const face of faces)
 		{
 			const verticies = face[0];
@@ -135,21 +167,21 @@ export class Entity {
 			const texture = face[2];
 			const normals = face[3];
 
-			vertexArray[vi++] = verticies[0].x + position[0];
-			vertexArray[vi++] = verticies[0].y + position[1];
-			vertexArray[vi++] = verticies[0].z + position[2];
+			vertexArray[vi++] = verticies[0].x + position[0] + x;
+			vertexArray[vi++] = verticies[0].y + position[1] + y;
+			vertexArray[vi++] = verticies[0].z + position[2] + z;
 
-			vertexArray[vi++] = verticies[1].x + position[0];
-			vertexArray[vi++] = verticies[1].y + position[1];
-			vertexArray[vi++] = verticies[1].z + position[2];
+			vertexArray[vi++] = verticies[1].x + position[0] + x;
+			vertexArray[vi++] = verticies[1].y + position[1] + y;
+			vertexArray[vi++] = verticies[1].z + position[2] + z;
 
-			vertexArray[vi++] = verticies[2].x + position[0];
-			vertexArray[vi++] = verticies[2].y + position[1];
-			vertexArray[vi++] = verticies[2].z + position[2];
+			vertexArray[vi++] = verticies[2].x + position[0] + x;
+			vertexArray[vi++] = verticies[2].y + position[1] + y;
+			vertexArray[vi++] = verticies[2].z + position[2] + z;
 
-			vertexArray[vi++] = verticies[3].x + position[0];
-			vertexArray[vi++] = verticies[3].y + position[1];
-			vertexArray[vi++] = verticies[3].z + position[2];
+			vertexArray[vi++] = verticies[3].x + position[0] + x;
+			vertexArray[vi++] = verticies[3].y + position[1] + y;
+			vertexArray[vi++] = verticies[3].z + position[2] + z;
 
 			normalArray[ni++] = normals[0].x;
 			normalArray[ni++] = normals[0].y;
